@@ -1,0 +1,96 @@
+Source dependencies:
+
+nek (https://github.com/maxhutch/nek   branch: simple)
+nek-tools (https://github.com/maxhutch/nek-tools  branch: maxhutch)
+nek-tests (https://github.com/maxhutch/nek-tests )
+
+Clone them all into your home directory.  Adjust paths accordingly.
+
+-- Library dependencies:
+
+ - fortran + mpi
+ - lapack
+ - fftw3
+
+1) enter the RTI-LST test directory:
+$ cd ~/maxhutch/nek-tests/RTI-LST
+
+2) Preprocess and build:
+$ ~/maxhutch/nek-tools/genrun/genrun.py -d LST.json -u LST_f90.tusr --makenek ~/maxhutch/nek/makenek RTI_LST
+
+3) Run nek! (from the same dir)
+$ ~/maxhutch/nek/nekmpi RTI_LST 1 #add a newline to /homes/ketan/maxhutch/nek-tests/RTI-LST/RTI_LST.map
+
+The make script (makenek) is set up for a gfortran-based environment that I install on travis with:
+ - sudo apt-get install -y gfortran
+ - sudo apt-get install -y mpich2 libmpich2-dev libmpich2-3
+ - sudo apt-get install -y liblapack-dev
+ - wget http://www.fftw.org/fftw-3.3.4.tar.gz
+ - tar xf fftw-3.3.4.tar.gz
+ - cd fftw-3.3.4
+ - ./configure --enable-mpi --prefix=${ROOT_DIR}/fftw3/
+ - make
+ - make install
+If you want to run on a machine like cetus, I can send you a makenek script to build for that.  I also have a script that replaces nekmpi with a qsub, but you'll probably end up replacing that in swift anyways.
+
+The output files are RTI_LST0.f000*  This is a simple example, so there is only one file per frame.  This outputs 10 frames.  The next part with detail post-processing.
+
+Source dependencies:
+
+nek-workflow (https://github.com/maxhutch/nek-workflow)
+nek-analyze (https://github.com/maxhutch/nek-analyze)
+
+Library dependencies are a bunch of python stuff
+$ pip install chest slict glopen globussh mapcombine numpy scipy ipython
+
+I recommend anaconda3, which works out of the box on Tukey. You also need a globus account.
+
+1) Setup `~/.glopen` config file.  Replace tempdir with something you have write access to.
+{
+  "local_endpoint" : "alcf#dtn_mira",
+  "tempdir" : "/home/maxhutch/tmp",
+  "foo" : "bar"
+}
+
+2) Activate alcf#dtn_mira end-point using the globus webpage.
+
+3) Setup `~/.nek-workflow.json` config file, replacing my home with yours
+{
+  "home_end" : "alcf#dtn_mira/home/maxhutch/",
+  'arch_end' : "alcf#dtn_mira/home/maxhutch/archive/",
+  'outp_end' : "alcf#dtn_mira/home/maxhutch/pub/",
+  "foo" : "bar"
+}
+
+4) Edit nek-workflow/analyze.py to point to your nek-analyze:
+14:  cd /home/maxhutch/nek-analyze
+
+5) Run!
+$ cd nek-workflow
+$ ./post_proc.py nek-tests/RTI-LST/RTI_LST -f 1 -e 10 --process --archive --upload --no-sync --nodes=1 #works on MCS 
+
+When I use this, arch_end points to acherry#hpss and outp_end points to petrel (maxhutch#alpha-admin).
+
+Ketan-notes:
+1. make the globus endpoints same to avoid Globus transfers for now.
+2. pip install chest slict glopen globussh mapcombine #don't need others with anaconda
+
+ssh tunnel command
+ssh -N -T -R *:$LOCAL_PORT:localhost:$LOCAL_PORT "$WORKER_USERNAME@$MACHINE"
+
+ARGS value:
+Namespace(arch_end='alcf#dtn_mira/home/ketan/archive/', archive=True, foo='bar', frame=1, frame_end=10, home_end='alcf#dtn_mira/home/ketan/', name='nek-tests/RTI-LST/RTI_LST', nodes=1, outp_end='alcf#dtn_mira/home/ketan/pub/', process=True, root='/home/ketan/', start=1, sync=False, upload=True)
+
+== Swift setup for running between Cetus and Tukey ==
+step1. Create an ssh tunnel between Cetus and Tukey
+
+cetus $ ssh -L 52000:127.0.0.1:52000 tukey.alcf.anl.gov -N
+
+step2. Start the Swift coaster service on Tukey
+
+tukey $ /home/ketan/swift-k/dist/swift-svn/bin/coaster-service -p 52000 -nosec
+
+step3. Run swift
+
+cetus $ /home/ketan/swift-k/dist/swift-svn/bin/swift -config tukey.conf -reducedLogging -minimalLogging testtukey.swift
+
