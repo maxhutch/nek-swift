@@ -63,7 +63,7 @@ file nek5000 <"nek5000">;
 
 /* app invocation */
 
-(genrun_o, genrun_e, nek5000, rea, map) = app_genrun (json, tusr, "/home/ketan/maxhutch/nek/makenek");
+(genrun_o, genrun_e, nek5000, rea, map) = app_genrun (json, tusr, "@pwd/nek/makenek");
 (donek_o, donek_e, RTIfiles) = app_donek(rea, map, nek5000);
 (analyze_o, analyze_e, pngs) = app_nek_analyze(RTIjson, RTIfiles);
 

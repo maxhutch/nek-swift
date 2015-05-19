@@ -1,3 +1,3 @@
 #!/bin/bash
 
-swift -config local.conf nek.swift
+~/src/swift/bin/swift -config local_cfg.conf nek_cfg.swift
