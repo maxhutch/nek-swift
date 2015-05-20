@@ -17,7 +17,7 @@
     1.0, 
     1.0
   ], 
-  "viscosity": 8.9e-7, 
+  "viscosity": @visc, 
   "back_bound": "P", 
   "left_bound": "P", 
   "root_mesh": [

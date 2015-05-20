@@ -39,31 +39,41 @@ app_nek_analyze
  nek_analyze "./RTI_LST" "-f" "1" "-e" "6" stdout=@_out stderr=@_err;
 }
 
+app
+(file _err, file _runconfig)
+app_make_config
+(file _tmplconfig, float _visc)
+{
+  sed "-e" strcat("s/@visc/",_visc,"/") stdout=@_runconfig stderr=@_err stdin=@_tmplconfig;
+}
 
-/* files */
-file genrun_o <"genrun_out.txt">;
-file genrun_e <"genrun_err.txt">;
 
-file donek_o <"donek_out.txt">;
-file donek_e <"donek_err.txt">;
-
-file analyze_o <"analyze_out.txt">;
-file analyze_e <"analyze_err.txt">;
-
-file RTIjson <"RTI_LST.json">;
+/* Inputs! */
+float viscosity=0.001;
 file json <"LST.json">;
 file tusr <"LST_f90.tusr">;
 
-file[] RTIfiles <filesys_mapper; pattern="RTI_LST0.f*">;
-file[] pngs <filesys_mapper; pattern="*.png">;
-
-file rea <"RTI_LST.rea">;
-file map <"RTI_LST.map">;
-file nek5000 <"nek5000">;
-
 /* app invocation */
 
-(genrun_o, genrun_e, nek5000, rea, map) = app_genrun (json, tusr, "@pwd/nek/makenek");
+file sed_e <"sed_err.txt">;
+file runconfig <"LST_sub.json">;
+(sed_e, runconfig) = app_make_config(json, viscosity );
+
+file nek5000 <"nek5000">;
+file rea <"RTI_LST.rea">;
+file map <"RTI_LST.map">;
+file genrun_o <"genrun_out.txt">;
+file genrun_e <"genrun_err.txt">;
+(genrun_o, genrun_e, nek5000, rea, map) = app_genrun (runconfig, tusr, "@pwd/nek/makenek");
+
+file donek_o <"donek_out.txt">;
+file donek_e <"donek_err.txt">;
+file[] RTIfiles <filesys_mapper; pattern="RTI_LST0.f*">;
 (donek_o, donek_e, RTIfiles) = app_donek(rea, map, nek5000);
+
+file RTIjson <"RTI_LST.json">;
+file analyze_o <"analyze_out.txt">;
+file analyze_e <"analyze_err.txt">;
+file[] pngs <filesys_mapper; pattern="*.png">;
 (analyze_o, analyze_e, pngs) = app_nek_analyze(RTIjson, RTIfiles);
 
