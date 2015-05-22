@@ -3,3 +3,5 @@
 run*
 *.txt
 *_cfg*
+*.rea
+*.map
