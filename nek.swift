@@ -27,11 +27,7 @@ foreach viscosity,i in viscosities {
   /* Run Nek! */
   file donek_o <single_file_mapper; file=sprintf("%s/donek_out.txt", tdir)>;
   file donek_e <single_file_mapper; file=sprintf("%s/donek_err.txt", tdir)>;
-  string[auto] RTI_outfile_names;
-  foreach j in [1:6] {
-    RTI_outfile_names << sprintf("%s/%s0.f0000%i", tdir, name, j);
-  }
-  file[] RTIfiles <array_mapper; files=RTI_outfile_names>;
+  file[] RTIfiles <simple_mapper; location=tdir, prefix=sprintf("%s0.f", name), padding=5>;
   (donek_o, donek_e, RTIfiles) = app_donek(rea, map, tdir, name, nek5000);
 
   /* Analyze the outputs, making a bunch of pngs */
