@@ -43,5 +43,5 @@
   ], 
   "order": 8,
   "dealiasing_order" : 12,
-  "procs" : 1
+  "procs" : 64
 }
