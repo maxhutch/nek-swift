@@ -1,12 +1,5 @@
 import "apps";
-type file;
-
-/* Inputs: standard dictionary, user file, and list of viscosities */
-file json <"LST.json">;
-file tusr <"LST_f90.tusr">;
-string pname="viscosity";
-float[] pvals=[0.001, 0.002];
-//float[] pvals=[0.001, 0.002, 0.003, 0.004, 0.005, 0.006];
+import "Hill";
 
 foreach pval,i in pvals {
 
@@ -21,17 +14,18 @@ foreach pval,i in pvals {
   file map      <single_file_mapper; file=sprintf("%s/%s.map",  tdir, name)>;
   file usr      <single_file_mapper; file=sprintf("%s/%s.usr",  tdir, name)>;
   file size_mod <single_file_mapper; file=sprintf("%s/size_mod.F90",  tdir, name)>;
+  //file size_mod <single_file_mapper; file=sprintf("%s/SIZE",  tdir, name)>;
 
-  (usr, rea, map, config, size_mod) = app_genrun (json, tusr, name, tdir, pname, pval);
+  (usr, rea, map, config, size_mod) = genrun (json, tusr, name, tdir, pname, pval);
   
   file nek5000 <single_file_mapper; file=sprintf("%s/nek5000", tdir, name)>;
-  (nek5000) = app_makenek(tdir, name, usr, size_mod);
+  (nek5000) = makenek(tdir, name, usr, size_mod);
 
   /* Run Nek! */
   file donek_o <single_file_mapper; file=sprintf("%s/%s.output", tdir, name)>;
   file donek_e <single_file_mapper; file=sprintf("%s/%s.error", tdir, name)>;
   string[auto] outfile_names;
-  foreach j in [1:9]{
+  foreach j in [1:nout]{
     outfile_names << sprintf("%s/%s0.f0000%i", tdir, name, j);
   }
   file[] outfiles <array_mapper; files=outfile_names>;
