@@ -4,7 +4,7 @@ import "Hill";
 foreach pval,i in pvals {
 
   /* Pick a directory to run in */
-  string tdir = sprintf("./%s-%f", pname, pval);
+  string tdir = sprintf("./Hill-%s-%f", pname, pval);
   string name = sprintf("./%s-%f", pname, pval);
 
   /* Construct input files and build the nek5000 executable */
@@ -13,21 +13,19 @@ foreach pval,i in pvals {
   file rea      <single_file_mapper; file=sprintf("%s/%s.rea",  tdir, name)>;
   file map      <single_file_mapper; file=sprintf("%s/%s.map",  tdir, name)>;
   file usr      <single_file_mapper; file=sprintf("%s/%s.usr",  tdir, name)>;
-  file size_mod <single_file_mapper; file=sprintf("%s/size_mod.F90",  tdir, name)>;
   //file size_mod <single_file_mapper; file=sprintf("%s/SIZE",  tdir, name)>;
+  file size_mod <single_file_mapper; file=sprintf("%s/size_mod.F90",  tdir, name)>;
 
-  (usr, rea, map, config, size_mod) = genrun (json, tusr, name, tdir, pname, pval);
+  (usr, rea, map, config, size_mod) = genrun (json, tusr, name, tdir, pname, pval, _legacy=legacy);
   
   file nek5000 <single_file_mapper; file=sprintf("%s/nek5000", tdir, name)>;
-  (nek5000) = makenek(tdir, name, usr, size_mod);
+  (nek5000) = makenek(tdir, name, usr, size_mod, _legacy=legacy);
 
   /* Run Nek! */
   file donek_o <single_file_mapper; file=sprintf("%s/%s.output", tdir, name)>;
   file donek_e <single_file_mapper; file=sprintf("%s/%s.error", tdir, name)>;
   string[auto] outfile_names;
-  foreach j in [1:nout]{
-    outfile_names << sprintf("%s/%s0.f0000%i", tdir, name, j);
-  }
+  outfile_names = nek_out_names(tdir, name, nout, nwrite);
   file[] outfiles <array_mapper; files=outfile_names>;
 
   (donek_o, donek_e, outfiles) = app_donek(rea, map, tdir, name, nek5000);

@@ -72,3 +72,12 @@ app_nek_analyze
  nek_analyze _name "-f" "1" "-e" "5" "-nt" "16" "-nb" "256" stdout=@_out stderr=@_err;
 }
 
+
+(string[auto] _ofs) nek_out_names(string _tdir, string _name, int _nout, int _nwrite)
+{
+  foreach i in [1:_nout]{
+    foreach j in [0:_nwrite-1]{
+      _ofs << sprintf("%s/A%s/%s%s.f%s", _tdir, pad(2, j), _name, pad(2,j), pad(5, i));
+    }
+  }
+}
