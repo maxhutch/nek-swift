@@ -60,7 +60,7 @@ app
 app_donek
 (file _rea, file _map, string _tdir, string _name, file _nek5000)
 {
- nekmpi _name "128" "64" _tdir;
+ nekmpi _name "256" "32" _tdir;
 }
 
 
@@ -80,4 +80,12 @@ app_nek_analyze
       _ofs << sprintf("%s/A%s/%s%s.f%s", _tdir, pad(2, j), _name, pad(2,j), pad(5, i));
     }
   }
+}
+
+app
+(file _out, file _err)
+app_archive
+(string _name, file[] _raw, file[] _img)
+{
+  post_proc strcat("nek-swift/",_name) "-f" "1" "-e" "5" "--archive" "--no-process" "--no-sync" "--no-upload" stdout=@_out stderr=@_err;
 }

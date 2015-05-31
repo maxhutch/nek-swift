@@ -4,12 +4,11 @@ import "Hill";
 foreach pval,i in pvals {
 
   /* Pick a directory to run in */
-  string tdir = sprintf("./Hill-%s-%f", pname, pval);
-  string name = sprintf("./%s-%f", pname, pval);
+  string tdir = sprintf("./%s_%s_%f", prefix, pname, pval);
+  string name = sprintf("./%s_%s_%f", prefix, pname, pval);
 
   /* Construct input files and build the nek5000 executable */
   file config   <single_file_mapper; file=sprintf("%s/%s.json", tdir, name)>;
-  //file RTIjson  <simple_mapper; location=tdir, prefix=name, suffix=".json">;
   file rea      <single_file_mapper; file=sprintf("%s/%s.rea",  tdir, name)>;
   file map      <single_file_mapper; file=sprintf("%s/%s.map",  tdir, name)>;
   file usr      <single_file_mapper; file=sprintf("%s/%s.usr",  tdir, name)>;
@@ -36,4 +35,10 @@ foreach pval,i in pvals {
   file[] pngs <filesys_mapper; pattern=sprintf("%s/%s*.png", tdir, name)>;
   (analyze_o, analyze_e, pngs) = app_nek_analyze(config, outfiles, sprintf("%s/%s",tdir,name));
 
+  /* Archive the outputs to HPSS */
+  file arch_o <single_file_mapper; file=sprintf("%s/arch.output", tdir, name)>;
+  file arch_e <single_file_mapper; file=sprintf("%s/arch.error", tdir, name)>;
+  (arch_o, arch_e) = app_archive(sprintf("%s/%s", tdir, name), outfiles, pngs);
+
+  /* Publish the outputs to Petrel */
 }
