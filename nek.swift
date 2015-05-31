@@ -33,12 +33,18 @@ foreach pval,i in pvals {
   file analyze_o <single_file_mapper; file=sprintf("%s/analyze_out.txt", tdir)>;
   file analyze_e <single_file_mapper; file=sprintf("%s/analyze_err.txt", tdir)>;
   file[] pngs <filesys_mapper; pattern=sprintf("%s/%s*.png", tdir, name)>;
+  //file[] chest<filesys_mapper; pattern=sprintf("%s/%s-results/*", tdir, name)>;
   (analyze_o, analyze_e, pngs) = app_nek_analyze(config, outfiles, sprintf("%s/%s",tdir,name));
+  //(analyze_o, analyze_e, chest, pngs) = app_nek_analyze(config, outfiles, sprintf("%s/%s",tdir,name));
 
   /* Archive the outputs to HPSS */
   file arch_o <single_file_mapper; file=sprintf("%s/arch.output", tdir, name)>;
   file arch_e <single_file_mapper; file=sprintf("%s/arch.error", tdir, name)>;
-  (arch_o, arch_e) = app_archive(sprintf("%s/%s", tdir, name), outfiles, pngs);
+  (arch_o, arch_e) = app_archive(sprintf("%s/%s", tdir, name), outfiles);
 
-  /* Publish the outputs to Petrel */
+  /* Publish the outputs to Petrel 
+  file uplo_o <single_file_mapper; file=sprintf("%s/uplo.output", tdir, name)>;
+  file uplo_e <single_file_mapper; file=sprintf("%s/uplo.error", tdir, name)>;
+  (uplo_o, uplo_e) = app_upload(sprintf("%s/%s", tdir, name), config, chest, pngs);
+  */
 }

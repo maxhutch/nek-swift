@@ -85,7 +85,16 @@ app_nek_analyze
 app
 (file _out, file _err)
 app_archive
-(string _name, file[] _raw, file[] _img)
+(string _name, file[] _raw)
 {
   post_proc strcat("nek-swift/",_name) "-f" "1" "-e" "5" "--archive" "--no-process" "--no-sync" "--no-upload" stdout=@_out stderr=@_err;
 }
+
+app
+(file _out, file _err)
+app_upload
+(string _name, file _config, file[] _chest, file[] _img)
+{
+  post_proc strcat("nek-swift/",_name) "-f" "1" "-e" "5" "--no-archive" "--no-process" "--no-sync" "--upload" stdout=@_out stderr=@_err;
+}
+
