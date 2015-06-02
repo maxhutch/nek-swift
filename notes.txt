@@ -94,3 +94,28 @@ step3. Run swift
 
 cetus $ /home/ketan/swift-k/dist/swift-svn/bin/swift -config tukey.conf -reducedLogging -minimalLogging testtukey.swift
 
+
+=== Swift Issues ===
+
+-- Bugzilla access to Max
+-- -- Swift features needed
+- smart job submission
+- json reader and writer at Swift level
+  (will address the variadic)
+- dir mapping for staging
+- variadic arguments [low prio]
+
+-- Way to tell Swift to use an output as an
+   intermediate outputs: to see if regexp_mapper
+   with transform will work? 
+
+-- Issues with direct staging: desirable
+
+-- Integrating Swift and Globus will help (will help Archive in HPSS)
+
+-- For going to NERSC from CETUS, one would like to have Swift do file checks, so Globus would be useful as a provider.
+
+-- Run from Cetus login node and have a capability to run on Tukey *login* node. (To test)
+
+-- Next steps and action items
+
