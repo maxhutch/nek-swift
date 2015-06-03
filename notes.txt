@@ -119,3 +119,13 @@ cetus $ /home/ketan/swift-k/dist/swift-svn/bin/swift -config tukey.conf -reduced
 
 -- Next steps and action items
 
+== Mike's notes from Meeting on June 2 (w Max and Ketan)
+
+-- Directory mapper, dir inputs to apps
+-- Subdir; dir seperator in mapper?
+-- Dynamic iteration: vary iteration count to change loop-size to fit into backfill (or equivalent)
+-- I/O from archive on SPSS via Globus Transfer
+-- Provenance in general
+  -- Identify specific provenance needs
+  -- Would it be effective with file paths as string?
+
