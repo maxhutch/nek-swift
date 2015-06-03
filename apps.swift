@@ -32,7 +32,15 @@ app
 app_gensub
 (file _json, file _tusr, string _name, string _tdir, string _pname, float _pval)
 {
-  genrun "-d" @_json "-u" @_tusr "--tdir" _tdir _name "--legacy" "--no-make" strcat("--override={\"",_pname,"\": ", _pval, "}");
+  genrun "-d" @_json "-u" @_tusr "--tdir" _tdir _name "--no-make" strcat("--override={\"",_pname,"\": ", _pval, "}");
+}
+
+app 
+(file _rea, file _map, file _config)
+app_regen
+(file _json, file _tusr, string _name, string _tdir, string _pname, float _pval)
+{
+  genrun "-d" @_json "-u" @_tusr "--tdir" _tdir _name "--no-make" strcat("--override={\"",_pname,"\": ", _pval, "}");
 }
 
 
