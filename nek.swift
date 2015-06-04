@@ -25,24 +25,20 @@ foreach pval,i in pvals {
   file nek5000 <single_file_mapper; file=sprintf("%s/nek5000", tdir, name)>;
   (nek5000) = makenek(tdir, name, usr, size_mod, _legacy=legacy);
 
-  //file size_mod_old <regexp_mapper; source=size_mod, match=sprintf("%s/size_mod(.*)", tdir), transform=sprintf("%s/size_mod_old\\1", tdir)>;
+  int[int] iout; iout[0] = 1;
+  int[int] istep; istep[0] = 0;
 
-  int[int] iout;
-  iout[0] = 1;
-  int[int] istep;
-  istep[0] = 0;
   iterate j {
+    /* Configure the next iteration */
     string name_j = sprintf("./%s_%s_%f-%d", prefix, pname, pval, j);
     string name_tj = sprintf("./%s_%s_%f-t%d", prefix, pname, pval, j);
     file config     <single_file_mapper; file=sprintf("%s/%s-%d.json", tdir, name, j)>;
     file tconf      <single_file_mapper; file=sprintf("%s/%s-t%d.json", tdir, name, j)>;
     file rea_j      <single_file_mapper; file=sprintf("%s/%s-%d.rea",  tdir, name, j)>;
     file map_j      <single_file_mapper; file=sprintf("%s/%s-%d.map",  tdir, name, j)>;
-    //file usr_j      <single_file_mapper; file=sprintf("%s/%s-%d.usr",  tdir, name, j)>;
-    //file size_mod <single_file_mapper; file=sprintf("%s/SIZE",  tdir, name)>;
-    //file size_mod_j <single_file_mapper; file=sprintf("%s/size_mod.F90",  tdir)>;
 
     (tconf) = app_gensub (base, tusr, name_tj, tdir, "num_steps", toFloat(step_block));
+
     float iout_l;
     if (iout[j] < 2) {
       iout_l = 0.0;
@@ -60,6 +56,7 @@ foreach pval,i in pvals {
     (checkpoint_names_j, outfile_names_j) = nek_out_names(tdir, name_j, iout[j], iout[j] + foo, nwrite);
     file[] outfiles_j <array_mapper; files=outfile_names_j>;
     file[] checkpoints_j <array_mapper; files=checkpoint_names_j>;
+
     if (j == 0){
       (donek_o, donek_e, outfiles_j, checkpoints_j) = app_donek(rea_j, map_j, tdir, name_j, nek5000);
     } else {
