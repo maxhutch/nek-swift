@@ -17,7 +17,7 @@
     1.0, 
     1.0
   ], 
-  "viscosity": @visc, 
+  "viscosity": 0.001, 
   "back_bound": "P", 
   "left_bound": "P", 
   "root_mesh": [
@@ -43,5 +43,5 @@
   ], 
   "order": 8,
   "dealiasing_order" : 12,
-  "procs" : 1
+  "procs" : 64
 }
