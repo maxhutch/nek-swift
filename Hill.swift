@@ -10,7 +10,7 @@ string pname="order";
 float[] pvals=[8.0];
 //float[] pvals=[0.001, 0.002, 0.003, 0.004, 0.005, 0.006];
 int nout = 5;
-int nwrite = 32;
+int nwrite = 2;
 boolean legacy = false;
 
 

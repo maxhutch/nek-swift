@@ -23,7 +23,7 @@ foreach pval,i in pvals {
   (usr, rea, map, base, size_mod) = genrun (json, tusr, name, tdir, pname, pval, _legacy=legacy);
   
   file nek5000 <single_file_mapper; file=sprintf("%s/nek5000", tdir, name)>;
-  (nek5000) = makenek(tdir, name, usr, size_mod, _legacy=legacy);
+  (nek5000) = makenek(tdir, "@pwd/nek/", name, usr, size_mod, _legacy=legacy);
 
   int[int] iout; iout[0] = 1;
   int[int] istep; istep[0] = 0;
@@ -78,10 +78,11 @@ foreach pval,i in pvals {
     //file[] chest<filesys_mapper; pattern=sprintf("%s/%s-results/*", tdir, name)>;
     (analyze_o, analyze_e, pngs) = app_nek_analyze(config, outfiles_j, checkpoints_j, sprintf("%s/%s",tdir,name_j), iout[j], iout[j] + foo );
 
-    /* Archive the outputs to HPSS */
+    /* Archive the outputs to HPSS 
     file arch_o <single_file_mapper; file=sprintf("%s/arch-%d.output", tdir, j)>;
     file arch_e <single_file_mapper; file=sprintf("%s/arch-%d.error", tdir, j)>;
     (arch_o, arch_e) = app_archive(sprintf("%s/%s", tdir, name_j), outfiles_j, checkpoints_j, iout[j], iout[j] + foo);
+    */ 
 
    istep[j+1] = istep[j] + step_block;
    iout[j+1] = iout[j] + foo;

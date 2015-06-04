@@ -1,3 +1,3 @@
 #!/bin/bash
-#make
-~/src/swift/bin/swift -config ct.conf nek_cfg.swift
+make
+~/src/swift/bin/swift -config local_cfg.conf nek_cfg.swift
