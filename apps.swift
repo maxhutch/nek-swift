@@ -77,7 +77,7 @@ app
 app_donek
 (file _rea, file _map, string _tdir, string _name, file _nek5000)
 {
- nekmpi _name 4 _tdir;
+ nekmpi _name 4 _tdir stdout=@_out stderr=@_err;
  //nekmpi _name "256" "32" _tdir;
 }
 
