@@ -86,7 +86,8 @@ app
 app_donek_restart
 (file _rea, file _map, string _tdir, string _name, file _nek5000, file[] _inpoint)
 {
- nekmpi _name "256" "32" _tdir;
+ nekmpi _name 4 _tdir stdout=@_out stderr=@_err;
+ //nekmpi _name "256" "32" _tdir;
 }
 
 
@@ -99,15 +100,15 @@ app_nek_analyze
 }
 
 
-(string[auto] _checkpoint, string[auto] _ofs) nek_out_names(string _tdir, string _name, int _nstart, int _nend, int _nwrite)
+(string[] _checkpoint, string[] _ofs) nek_out_names(string _tdir, string _name, int _nstart, int _nend, int _nwrite)
 {
   foreach i in [_nstart:_nend-1]{
     foreach j in [0:_nwrite-1]{
-      _ofs << sprintf("%s/A%s/%s%s.f%s", _tdir, pad(1, j), _name, pad(1,j), pad(5, i));
+      _ofs[(i-_nstart)*_nwrite + j] = sprintf("%s/A%s/%s%s.f%s", _tdir, pad(1, j), _name, pad(1,j), pad(5, i));
     }
   }
   foreach j in [0:_nwrite-1]{
-    _ofs << sprintf("%s/A%s/%s%s.f%s", _tdir, pad(1, j), _name, pad(1,j), pad(5, _nend));
+    _checkpoint[j] = sprintf("%s/A%s/%s%s.f%s", _tdir, pad(1, j), _name, pad(1,j), pad(5, _nend));
   }
 }
 
@@ -127,3 +128,10 @@ app_upload
   post_proc strcat("nek-swift/",_name) "-f" _start "-e" _end "--no-archive" "--no-process" "--no-sync" "--upload" stdout=@_out stderr=@_err;
 }
 
+app
+(file _dest)
+app_cp
+(file _src)
+{
+  cp @_src @_dest;
+}

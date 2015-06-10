@@ -9,8 +9,12 @@ string pname="order";
 //float[] pvals=[4.0, 8.0, 12.0, 16.0];
 float[] pvals=[8.0];
 //float[] pvals=[0.001, 0.002, 0.003, 0.004, 0.005, 0.006];
-int nout = 5;
 int nwrite = 2;
 boolean legacy = false;
+
+int nstep = 200;
+int io_step = 25;
+int step_block = 50;
+int foo = 2;
 
 
