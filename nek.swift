@@ -1,5 +1,5 @@
 import "apps";
-import "Hill";
+import "HA";
 
 foreach pval,i in pvals {
 
@@ -18,7 +18,7 @@ foreach pval,i in pvals {
   (usr, rea, map, base, size_mod) = genrun (json, tusr, name, tdir, pname, pval, _legacy=legacy);
   
   file nek5000 <single_file_mapper; file=sprintf("%s/nek5000", tdir, name)>;
-  (nek5000) = makenek(tdir, "@pwd/nek/", name, usr, size_mod, _legacy=legacy);
+  (nek5000) = makenek(tdir, "/home/maxhutch/simple/nek/", name, usr, size_mod, _legacy=legacy);
 
   int[int] iout; iout[0] = 1;
   int[int] istep; istep[0] = 0;
@@ -32,13 +32,12 @@ foreach pval,i in pvals {
   iterate j {
     /* Configure the next iteration */
     string name_j = sprintf("./%s_%s_%f-%d", prefix, pname, pval, j);
-    string name_tj = sprintf("./%s_%s_%f-t%d", prefix, pname, pval, j);
+    //string name_tj = sprintf("./%s_%s_%f-t%d", prefix, pname, pval, j);
     file config     <single_file_mapper; file=sprintf("%s/%s-%d.json", tdir, name, j)>;
-    file tconf      <single_file_mapper; file=sprintf("%s/%s-t%d.json", tdir, name, j)>;
+    //file tconf      <single_file_mapper; file=sprintf("%s/%s-t%d.json", tdir, name, j)>;
     file rea_j      <single_file_mapper; file=sprintf("%s/%s-%d.rea",  tdir, name, j)>;
     file map_j      <single_file_mapper; file=sprintf("%s/%s-%d.map",  tdir, name, j)>;
 
-    (tconf) = app_gensub (base, tusr, name_tj, tdir, "num_steps", toFloat(step_block));
 
     float iout_l;
     int istart;
@@ -50,7 +49,8 @@ foreach pval,i in pvals {
       istart = iout[j] + 1;
     }
 
-    (rea_j, map_j, config) = app_regen (tconf,  tusr, name_j, tdir, "restart",   iout_l);
+    (rea_j, map_j, config) = app_regen (base, tusr, name_j, tdir, "num_steps", toFloat(step_block), "restart",   iout_l);
+    //(rea_j, map_j, config) = app_regen (tconf,  tusr, name_j, tdir, "restart",   iout_l);
 
     /* Run Nek! */
     file donek_o <single_file_mapper; file=sprintf("%s/%s-%d.output", tdir, name, j)>;
@@ -74,11 +74,6 @@ foreach pval,i in pvals {
       (new_checkpoints, new_outputs) = nek_out_names(tdir, sprintf("./%s_%s_%f-%d", prefix, pname, pval, j), istart-2, istart-1, nwrite);
       
       file[] checks_new <array_mapper; files=new_checkpoints>;
-      /* 
-      file[] checks <structured_regexp_mapper; source=checkpoints_j[j-1], 
-        match=sprintf("%s_%s_%f/(.*)/%s_%s_%f-%d(.*)", prefix, pname, pval, prefix, pname, pval, j-1), 
-        transform=strcat(sprintf("%s_%s_%f/", prefix, pname, pval), "\\1", sprintf("/%s_%s_%f-%d", prefix, pname, pval, j), "\\2")>;
-      */
       foreach f,ii in checkpoints_j[j-1]{
         checks_new[ii] = app_cp(f);
       }
@@ -93,20 +88,18 @@ foreach pval,i in pvals {
     //file[] chest<filesys_mapper; pattern=sprintf("%s/%s-results/*", tdir, name)>;
     (analyze_o, analyze_e, pngs) = app_nek_analyze(config, outfiles, checkpoints, sprintf("%s/%s",tdir,name_j), istart, iout[j] + foo);
 
-    /* Archive the outputs to HPSS 
+    /* Archive the outputs to HPSS  */
     file arch_o <single_file_mapper; file=sprintf("%s/arch-%d.output", tdir, j)>;
     file arch_e <single_file_mapper; file=sprintf("%s/arch-%d.error", tdir, j)>;
-    (arch_o, arch_e) = app_archive(sprintf("%s/%s", tdir, name_j), outfiles_j, checkpoints_j, iout[j], iout[j] + foo);
-    */ 
+    (arch_o, arch_e) = app_archive(sprintf("%s/%s", tdir, name_j), outfiles, checkpoints, istart, iout[j] + foo);
+ 
+    /* Publish the outputs to Petrel 
+    file uplo_o <single_file_mapper; file=sprintf("%s/uplo-%d.output", tdir, j)>;
+    file uplo_e <single_file_mapper; file=sprintf("%s/uplo-%d.error", tdir, j)>;
+    (uplo_o, uplo_e) = app_upload(sprintf("%s/%s", tdir, name_j), config, pngs);
+    */
 
    istep[j+1] = istep[j] + step_block;
    iout[j+1] = iout[j] + foo;
-  } until (istep[j] >= nstep);
-
-  /* Publish the outputs to Petrel 
-  file uplo_o <single_file_mapper; file=sprintf("%s/uplo.output", tdir, name)>;
-  file uplo_e <single_file_mapper; file=sprintf("%s/uplo.error", tdir, name)>;
-  (uplo_o, uplo_e) = app_upload(sprintf("%s/%s", tdir, name), config, chest, pngs);
-  */
-  
+  } until (istep[j] >= nstep); 
 }

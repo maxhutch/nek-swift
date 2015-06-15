@@ -38,9 +38,9 @@ app_gensub
 app 
 (file _rea, file _map, file _config)
 app_regen
-(file _json, file _tusr, string _name, string _tdir, string _pname, float _pval)
+(file _json, file _tusr, string _name, string _tdir, string _pname, float _pval, string _pname2, float _pval2)
 {
-  genrun "-d" @_json "-u" @_tusr "--tdir" _tdir _name "--no-make" strcat("--override={\"",_pname,"\": ", _pval, "}");
+  genrun "-d" @_json "-u" @_tusr "--tdir" _tdir _name "--no-make" strcat("--override={\"",_pname,"\": ", _pval, ", \"", _pname2, "\": ", _pval2, "}");
 }
 
 
@@ -77,8 +77,8 @@ app
 app_donek
 (file _rea, file _map, string _tdir, string _name, file _nek5000)
 {
- nekmpi _name 4 _tdir stdout=@_out stderr=@_err;
- //nekmpi _name "256" "32" _tdir;
+ //nekmpi _name 4 _tdir stdout=@_out stderr=@_err;
+ nekmpi _name "128" "32" _tdir;
 }
 
 app
@@ -86,8 +86,8 @@ app
 app_donek_restart
 (file _rea, file _map, string _tdir, string _name, file _nek5000, file[] _inpoint)
 {
- nekmpi _name 4 _tdir stdout=@_out stderr=@_err;
- //nekmpi _name "256" "32" _tdir;
+ //nekmpi _name 4 _tdir stdout=@_out stderr=@_err;
+ nekmpi _name "128" "32" _tdir;
 }
 
 
@@ -104,11 +104,11 @@ app_nek_analyze
 {
   foreach i in [_nstart:_nend-1]{
     foreach j in [0:_nwrite-1]{
-      _ofs[(i-_nstart)*_nwrite + j] = sprintf("%s/A%s/%s%s.f%s", _tdir, pad(1, j), _name, pad(1,j), pad(5, i));
+      _ofs[(i-_nstart)*_nwrite + j] = sprintf("%s/A%s/%s%s.f%s", _tdir, pad(3, j), _name, pad(3,j), pad(5, i));
     }
   }
   foreach j in [0:_nwrite-1]{
-    _checkpoint[j] = sprintf("%s/A%s/%s%s.f%s", _tdir, pad(1, j), _name, pad(1,j), pad(5, _nend));
+    _checkpoint[j] = sprintf("%s/A%s/%s%s.f%s", _tdir, pad(3, j), _name, pad(3,j), pad(5, _nend));
   }
 }
 
