@@ -18,29 +18,24 @@ foreach pval,i in pvals {
   (usr, rea, map, base, size_mod) = genrun (json, tusr, name, tdir, pname, pval, _legacy=legacy);
   
   file nek5000 <single_file_mapper; file=sprintf("%s/nek5000", tdir, name)>;
-  (nek5000) = makenek(tdir, "/home/maxhutch/simple/nek/", name, usr, size_mod, _legacy=legacy);
+  (nek5000) = makenek(tdir, "/home/maxhutch/nek/", name, usr, size_mod, _legacy=legacy);
 
-  int[int] iout; iout[0] = 1;
-  int[int] istep; istep[0] = 0;
+  int[] iout; iout[0] = 1;
+  int[] istep; istep[0] = 0;
 
   string[][] outfile_names_j;
   string[][] checkpoint_names_j;
   file[][] outfiles_j;
   file[][] checkpoints_j;
 
-
   iterate j {
     /* Configure the next iteration */
     string name_j = sprintf("./%s_%s_%f-%d", prefix, pname, pval, j);
-    //string name_tj = sprintf("./%s_%s_%f-t%d", prefix, pname, pval, j);
     file config     <single_file_mapper; file=sprintf("%s/%s-%d.json", tdir, name, j)>;
-    //file tconf      <single_file_mapper; file=sprintf("%s/%s-t%d.json", tdir, name, j)>;
     file rea_j      <single_file_mapper; file=sprintf("%s/%s-%d.rea",  tdir, name, j)>;
     file map_j      <single_file_mapper; file=sprintf("%s/%s-%d.map",  tdir, name, j)>;
 
-
-    float iout_l;
-    int istart;
+    float iout_l; int istart;
     if (iout[j] < 2) {
       iout_l = 0.0;
       istart = 1;
@@ -50,13 +45,11 @@ foreach pval,i in pvals {
     }
 
     (rea_j, map_j, config) = app_regen (base, tusr, name_j, tdir, "num_steps", toFloat(step_block), "restart",   iout_l);
-    //(rea_j, map_j, config) = app_regen (tconf,  tusr, name_j, tdir, "restart",   iout_l);
 
     /* Run Nek! */
     file donek_o <single_file_mapper; file=sprintf("%s/%s-%d.output", tdir, name, j)>;
     file donek_e <single_file_mapper; file=sprintf("%s/%s-%d.error", tdir, name, j)>;
-    string[] checkpoint_names;
-    string[] outfile_names;
+    string[] checkpoint_names, outfile_names;
     (checkpoint_names, outfile_names) = nek_out_names(tdir, name_j, istart, iout[j] + foo, nwrite);
     outfile_names_j[j] = outfile_names;
     checkpoint_names_j[j] = checkpoint_names;
@@ -69,8 +62,7 @@ foreach pval,i in pvals {
     if (j == 0){
       (donek_o, donek_e, outfiles, checkpoints) = app_donek(rea_j, map_j, tdir, name_j, nek5000);
     } else {
-      string[] new_checkpoints;
-      string[] new_outputs;
+      string[] new_checkpoints, new_outputs;
       (new_checkpoints, new_outputs) = nek_out_names(tdir, sprintf("./%s_%s_%f-%d", prefix, pname, pval, j), istart-2, istart-1, nwrite);
       
       file[] checks_new <array_mapper; files=new_checkpoints>;
