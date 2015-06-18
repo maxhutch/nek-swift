@@ -41,15 +41,15 @@
   "right_bound": "W", 
   "dim": 3, 
   "io_time": 0.0, 
-  "io_files" : -2,
+  "io_files" : -64,
   "npres" : 8.0,
   "nvel" : 2.0,
   "shape_mesh": [
-    16, 
-    16, 
-    16
+    64, 
+    64, 
+    64
   ], 
   "order": 10,
   "dealiasing_order" : 16,
-  "procs" : 4
+  "procs" : 8192
 }
