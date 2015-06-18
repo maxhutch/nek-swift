@@ -1,11 +1,12 @@
 import "apps";
-import "HA";
 
 foreach pval,i in pvals {
 
   /* Pick a directory to run in */
   string tdir = sprintf("./%s_%s_%f", prefix, pname, pval);
   string name = sprintf("./%s_%s_%f", prefix, pname, pval);
+  file tdir_f  <single_file_mapper; file=strcat("/projects/alpha-nek/nek-swift/",tdir)>;
+  //(tdir_f) = mkdir(tdir);
 
   /* Construct input files and build the nek5000 executable */
   file base     <single_file_mapper; file=sprintf("%s/%s.json", tdir, name)>;
@@ -15,10 +16,10 @@ foreach pval,i in pvals {
   //file size_mod <single_file_mapper; file=sprintf("%s/SIZE",  tdir, name)>;
   file size_mod <single_file_mapper; file=sprintf("%s/size_mod.F90",  tdir)>;
 
-  (usr, rea, map, base, size_mod) = genrun (json, tusr, name, tdir, pname, pval, _legacy=legacy);
+  (usr, rea, map, base, size_mod) = genrun (json, tusr, name, tdir_f, pname, pval, _legacy=legacy);
   
   file nek5000 <single_file_mapper; file=sprintf("%s/nek5000", tdir, name)>;
-  (nek5000) = makenek(tdir, "/home/maxhutch/nek/", name, usr, size_mod, _legacy=legacy);
+  (nek5000) = makenek(tdir_f, "/home/maxhutch/nek/", name, usr, size_mod, _legacy=legacy);
 
   int[] iout; iout[0] = 1;
   int[] istep; istep[0] = 0;
@@ -44,7 +45,7 @@ foreach pval,i in pvals {
       istart = iout[j] + 1;
     }
 
-    (rea_j, map_j, config) = app_regen (base, tusr, name_j, tdir, "num_steps", toFloat(step_block), "restart",   iout_l);
+    (rea_j, map_j, config) = app_regen (base, tusr, name_j, tdir_f, "num_steps", toFloat(step_block), "restart",   iout_l);
 
     /* Run Nek! */
     file donek_o <single_file_mapper; file=sprintf("%s/%s-%d.output", tdir, name, j)>;
@@ -60,7 +61,7 @@ foreach pval,i in pvals {
 
 
     if (j == 0){
-      (donek_o, donek_e, outfiles, checkpoints) = app_donek(rea_j, map_j, tdir, name_j, nek5000);
+      (donek_o, donek_e, outfiles, checkpoints) = app_donek(rea_j, map_j, tdir_f, name_j, nek5000);
     } else {
       string[] new_checkpoints, new_outputs;
       (new_checkpoints, new_outputs) = nek_out_names(tdir, sprintf("./%s_%s_%f-%d", prefix, pname, pval, j), istart-2, istart-1, nwrite);
@@ -70,7 +71,7 @@ foreach pval,i in pvals {
         checks_new[ii] = app_cp(f);
       }
       
-      (donek_o, donek_e, outfiles, checkpoints) = app_donek_restart(rea_j, map_j, tdir, name_j, nek5000, checks_new);
+      (donek_o, donek_e, outfiles, checkpoints) = app_donek_restart(rea_j, map_j, tdir_f, name_j, nek5000, checks_new);
     }
  
     /* Analyze the outputs, making a bunch of pngs */
@@ -79,6 +80,7 @@ foreach pval,i in pvals {
     file[] pngs <filesys_mapper; pattern=sprintf("%s/%s*.png", tdir, name_j)>;
     //file[] chest<filesys_mapper; pattern=sprintf("%s/%s-results/*", tdir, name)>;
     (analyze_o, analyze_e, pngs) = app_nek_analyze(config, outfiles, checkpoints, sprintf("%s/%s",tdir,name_j), istart, iout[j] + foo);
+    
 
     /* Archive the outputs to HPSS  */
     file arch_o <single_file_mapper; file=sprintf("%s/arch-%d.output", tdir, j)>;
