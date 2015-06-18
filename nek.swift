@@ -1,5 +1,9 @@
 import "apps";
 
+(int retcode) sweep (string prefix, file json, file tusr, string pname, float[] pvals, int nwrite, boolean legacy, int nstep, int io_step, int step_block, int foo){
+
+retcode = 1;
+
 foreach pval,i in pvals {
 
   /* Pick a directory to run in */
@@ -96,4 +100,6 @@ foreach pval,i in pvals {
    istep[j+1] = istep[j] + step_block;
    iout[j+1] = iout[j] + foo;
   } until (istep[j] >= nstep); 
+}
+
 }

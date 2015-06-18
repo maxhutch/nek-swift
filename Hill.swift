@@ -1,3 +1,4 @@
+import "nek";
 type file;
 
 /* Inputs: standard dictionary, user file, and list of viscosities */
@@ -18,3 +19,5 @@ int step_block = 50;
 int foo = 2;
 
 
+int test;
+test = sweep(prefix, json, tusr, pname, pvals, nwrite, legacy, nstep, io_step, step_block, foo);
