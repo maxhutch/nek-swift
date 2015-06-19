@@ -1,6 +1,6 @@
 import "apps";
 
-(int retcode) sweep (string prefix, file json, file tusr, string pname, float[] pvals, int nwrite, boolean legacy, int nstep, int io_step, int step_block, int foo){
+(int retcode) sweep (string prefix, file json, file tusr, string pname, float[] pvals, int nwrite, boolean legacy, int nstep, int io_step, int step_block, int foo, int nodes, int mode){
 
 retcode = 1;
 
@@ -65,7 +65,7 @@ foreach pval,i in pvals {
 
 
     if (j == 0){
-      (donek_o, donek_e, outfiles, checkpoints) = app_donek(rea_j, map_j, tdir_f, name_j, nek5000);
+      (donek_o, donek_e, outfiles, checkpoints) = app_donek(rea_j, map_j, tdir_f, name_j, nek5000, nodes, mode);
     } else {
       string[] new_checkpoints, new_outputs;
       (new_checkpoints, new_outputs) = nek_out_names(tdir, sprintf("./%s_%s_%f-%d", prefix, pname, pval, j), istart-2, istart-1, nwrite);
@@ -75,14 +75,14 @@ foreach pval,i in pvals {
         checks_new[ii] = app_cp(f);
       }
       
-      (donek_o, donek_e, outfiles, checkpoints) = app_donek_restart(rea_j, map_j, tdir_f, name_j, nek5000, checks_new);
+      (donek_o, donek_e, outfiles, checkpoints) = app_donek_restart(rea_j, map_j, tdir_f, name_j, nek5000, checks_new, nodes, mode);
     }
  
     /* Analyze the outputs, making a bunch of pngs */
     file analyze_o <single_file_mapper; file=sprintf("%s/analyze-%d_out.txt", tdir, j)>;
     file analyze_e <single_file_mapper; file=sprintf("%s/analyze-%d_err.txt", tdir, j)>;
     file[] pngs <filesys_mapper; pattern=sprintf("%s/%s*.png", tdir, name_j)>;
-    //file[] chest<filesys_mapper; pattern=sprintf("%s/%s-results/*", tdir, name)>;
+    //file chest <single_file_mapper; file=sprintf("%s/%s-results", tdir, name_j)>;
     (analyze_o, analyze_e, pngs) = app_nek_analyze(config, outfiles, checkpoints, sprintf("%s/%s",tdir,name_j), istart, iout[j] + foo);
     
 
@@ -91,11 +91,10 @@ foreach pval,i in pvals {
     file arch_e <single_file_mapper; file=sprintf("%s/arch-%d.error", tdir, j)>;
     (arch_o, arch_e) = app_archive(sprintf("%s/%s", tdir, name_j), outfiles, checkpoints, istart, iout[j] + foo);
  
-    /* Publish the outputs to Petrel 
+    /* Publish the outputs to Petrel */
     file uplo_o <single_file_mapper; file=sprintf("%s/uplo-%d.output", tdir, j)>;
     file uplo_e <single_file_mapper; file=sprintf("%s/uplo-%d.error", tdir, j)>;
-    (uplo_o, uplo_e) = app_upload(sprintf("%s/%s", tdir, name_j), config, pngs);
-    */
+    (uplo_o, uplo_e) = app_upload(sprintf("%s/%s", tdir, name_j), config, pngs, istart, iout[j]+foo);
 
    istep[j+1] = istep[j] + step_block;
    iout[j+1] = iout[j] + foo;

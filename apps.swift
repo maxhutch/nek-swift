@@ -75,24 +75,24 @@ makenek
 app
 (file _out, file _err, file[] _RTIfiles, file[] _checkpoint)
 app_donek
-(file _rea, file _map, file _tdir, string _name, file _nek5000)
+(file _rea, file _map, file _tdir, string _name, file _nek5000, int _nodes, int _mode)
 {
  //nekmpi _name 4 _tdir stdout=@_out stderr=@_err;
- nekmpi _name "128" "64" @_tdir;
+ nekmpi _name toString(_nodes) toString(_mode) @_tdir;
 }
 
 app
 (file _out, file _err, file[] _RTIfiles, file[] _checkpoint)
 app_donek_restart
-(file _rea, file _map, file _tdir, string _name, file _nek5000, file[] _inpoint)
+(file _rea, file _map, file _tdir, string _name, file _nek5000, file[] _inpoint, int _nodes, int _mode)
 {
  //nekmpi _name 4 _tdir stdout=@_out stderr=@_err;
- nekmpi _name "128" "64" @_tdir;
+ nekmpi _name toString(_nodes) toString(_mode) @_tdir;
 }
 
 
 app
-(file _out, file _err, file[] _pngs)
+(file _out, file _err, file[] _pngs) //, file _chest)
 app_nek_analyze
 (file _RTIjson, file[] _RTIfiles, file[] _checkpoints, string _name, int _start, int _end)
 {
@@ -123,7 +123,7 @@ app_archive
 app
 (file _out, file _err)
 app_upload
-(string _name, file _config, file[] _chest, file[] _img, int _start, int _end)
+(string _name, file _config, file[] _img, int _start, int _end)
 {
   post_proc strcat("nek-swift/",_name) "-f" _start "-e" _end "--no-archive" "--no-process" "--no-sync" "--upload" stdout=@_out stderr=@_err;
 }
