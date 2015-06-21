@@ -1,8 +1,9 @@
 import "apps";
 
-(int retcode) sweep (string prefix, file json, file tusr, string pname, float[] pvals, int nwrite, boolean legacy, int nstep, int io_step, int step_block, int foo, int nodes, int mode){
+(int retcode) sweep (string prefix, file json, file tusr, string pname, float[] pvals, int nwrite, boolean legacy, int nstep, int io_step, int step_block, int nodes, int mode, int job_time){
 
 retcode = 1;
+int foo = step_block %/ io_step;
 
 foreach pval,i in pvals {
 
@@ -65,7 +66,7 @@ foreach pval,i in pvals {
 
 
     if (j == 0){
-      (donek_o, donek_e, outfiles, checkpoints) = app_donek(rea_j, map_j, tdir_f, name_j, nek5000, nodes, mode);
+      (donek_o, donek_e, outfiles, checkpoints) = app_donek(rea_j, map_j, tdir_f, name_j, nek5000, nodes, mode, job_time);
     } else {
       string[] new_checkpoints, new_outputs;
       (new_checkpoints, new_outputs) = nek_out_names(tdir, sprintf("./%s_%s_%f-%d", prefix, pname, pval, j), istart-2, istart-1, nwrite);
@@ -75,7 +76,7 @@ foreach pval,i in pvals {
         checks_new[ii] = app_cp(f);
       }
       
-      (donek_o, donek_e, outfiles, checkpoints) = app_donek_restart(rea_j, map_j, tdir_f, name_j, nek5000, checks_new, nodes, mode);
+      (donek_o, donek_e, outfiles, checkpoints) = app_donek_restart(rea_j, map_j, tdir_f, name_j, nek5000, checks_new, nodes, mode, job_time);
     }
  
     /* Analyze the outputs, making a bunch of pngs */
