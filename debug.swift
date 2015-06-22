@@ -11,7 +11,7 @@ file tusr <"single_mode.tusr">;
 string pname="visc";
 float[] pvals = [0.0001];
 //float[] pvals=[0.001, 0.002, 0.003, 0.004, 0.005, 0.006];
-int nwrite=128;
+int nwrite=256;
 boolean legacy = false;
 
 /*
@@ -20,9 +20,14 @@ int io_step = 128;
 int step_block = 1024;
 int foo = 8;
 */
-int nstep = 128;
-int io_step = 64;
-int step_block = 64;
-int foo = 1;
+int nodes = 128;
+int mode = 64;
+int nstep = 256;
+int io_step = 32;
+int step_block = 128;
+int jtime = 30;
 int test;
-test = sweep(prefix, json, tusr, pname, pvals, nwrite, legacy, nstep, io_step, step_block, foo);
+int j0 = 1;
+
+
+test = sweep(prefix, json, tusr, pname, pvals, nwrite, legacy, nstep, io_step, step_block, nodes, mode, jtime, j0 = j0);

@@ -75,19 +75,19 @@ makenek
 app
 (file _out, file _err, file[] _RTIfiles, file[] _checkpoint)
 app_donek
-(file _rea, file _map, file _tdir, string _name, file _nek5000, int _nodes, int _mode, int _time)
+(file _rea, file _map, file _tdir, string _name, string _series, file _nek5000, int _nodes, int _mode, int _time)
 {
  //nekmpi _name 4 _tdir stdout=@_out stderr=@_err;
- nekmpi _name toString(_nodes) toString(_mode) _time @_tdir;
+ nekmpi _name _series toString(_nodes) toString(_mode) _time @_tdir;
 }
 
 app
 (file _out, file _err, file[] _RTIfiles, file[] _checkpoint)
 app_donek_restart
-(file _rea, file _map, file _tdir, string _name, file _nek5000, file[] _inpoint, int _nodes, int _mode, int _time)
+(file _rea, file _map, file _tdir, string _name, string _series, file _nek5000, file[] _inpoint, int _nodes, int _mode, int _time)
 {
  //nekmpi _name 4 _tdir stdout=@_out stderr=@_err;
- nekmpi _name toString(_nodes) toString(_mode) _time @_tdir;
+ nekmpi _name _series toString(_nodes) toString(_mode) _time @_tdir;
 }
 
 
