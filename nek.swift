@@ -4,13 +4,14 @@ import "apps";
 
 retcode = 1;
 int foo = step_block %/ io_step;
+string cwd = arg("cwd", ".");
 
 foreach pval,i in pvals {
 
   /* Pick a directory to run in */
   string tdir = sprintf("./%s_%s_%f", prefix, pname, pval);
   string name = sprintf("./%s_%s_%f", prefix, pname, pval);
-  file tdir_f  <single_file_mapper; file=strcat("/projects/alpha-nek/nek-swift/",tdir)>;
+  file tdir_f  <single_file_mapper; file=strcat(cwd,"/",tdir)>;
   //(tdir_f) = mkdir(tdir);
 
   /* Construct input files and build the nek5000 executable */
