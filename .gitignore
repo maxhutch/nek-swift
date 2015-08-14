@@ -5,3 +5,7 @@ run*
 *_cfg*
 *.rea
 *.map
+*.log
+size_mod.F90
+SIZE
+_concurrent
