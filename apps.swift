@@ -94,9 +94,9 @@ app_donek_restart
 app
 (file _out, file _err, file[] _pngs) //, file _chest)
 app_nek_analyze
-(file _RTIjson, file[] _RTIfiles, file[] _checkpoints, string _name, int _start, int _end)
+(file _RTIjson, file[] _RTIfiles, file[] _checkpoints, string _name, string _analysis, int _start, int _end, int _post_nodes)
 {
-  post_proc strcat("nek-swift/", _name) "-f" _start "-e" _end "--no-archive" "--process" "--no-sync" "--no-upload" strcat("--nodes=", toString(_end - _start + 1)) stdout=@_out stderr=@_err;
+  post_proc  _name "-f" _start "-e" _end "--no-archive" "--process" "--no-sync" "--no-upload" strcat("--nodes=", toString(_post_nodes)) "--home_end=alcf#dtn_mira/" strcat("--analysis=", _analysis) stdout=@_out stderr=@_err;
 }
 
 
@@ -117,7 +117,7 @@ app
 app_archive
 (string _name, file[] _raw, file[] _checkpoint, int _start, int _end)
 {
-  post_proc strcat("nek-swift/",_name) "-f" _start "-e" _end "--archive" "--no-process" "--no-sync" "--no-upload" stdout=@_out stderr=@_err;
+  post_proc _name "-f" _start "-e" _end "--archive" "--no-process" "--no-sync" "--no-upload" stdout=@_out stderr=@_err;
 }
 
 app
@@ -125,7 +125,7 @@ app
 app_upload
 (string _name, file _config, file[] _img, int _start, int _end)
 {
-  post_proc strcat("nek-swift/",_name) "-f" _start "-e" _end "--no-archive" "--no-process" "--no-sync" "--upload" stdout=@_out stderr=@_err;
+  post_proc _name "-f" _start "-e" _end "--no-archive" "--no-process" "--no-sync" "--upload" stdout=@_out stderr=@_err;
 }
 
 app

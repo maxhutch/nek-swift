@@ -1,10 +1,26 @@
 import "apps";
 
-(int retcode) sweep (string prefix, file json, file tusr, string pname, float[] pvals, int nwrite, boolean legacy, int nstep, int io_step, int step_block, int nodes, int mode, int job_time, int j0 = 0){
+(int retcode) sweep (string prefix, file json, file tusr, 
+                     string pname, float[] pvals, int nwrite, boolean legacy, 
+                     int nstep, 
+                     int io_step, int step_block, 
+                     float io_time, float time_block, 
+                     int nodes, int mode, int job_time, 
+                     int j0=0,
+                     string analysis="RTI",
+                     int post_nodes=0
+                    ){
 
 retcode = 1;
-int foo = step_block %/ io_step;
+int foo;
+if (time_block > 0.0 && io_time > 0.0){
+  foo = toInt(sprintf("%1.0f", time_block / io_time));
+} else {
+  foo = step_block %/ io_step;
+}
 string cwd = arg("cwd", ".");
+string[] cwds = strsplit(cwd, "/");
+string exp_name = cwds[length(cwds)-1];
 
 foreach pval,i in pvals {
 
@@ -29,6 +45,7 @@ foreach pval,i in pvals {
 
   int[] iout; iout[j0] = j0 * foo + 1;
   int[] istep; istep[j0] = j0*step_block;
+  float[] times; times[j0] = time_block * j0;
   
   string[][] outfile_names_j;
   string[][] checkpoint_names_j;
@@ -59,11 +76,22 @@ foreach pval,i in pvals {
       iout_l = 0.0;
       istart = 1;
     } else { 
-      iout_l = toFloat(iout[j]);
+      iout_l = toFloat(sprintf("%i",iout[j]));
       istart = iout[j] + 1;
     }
+    int post_nodes_l;
+    if (post_nodes < 1){
+      post_nodes_l = iout[j] + foo - istart + 1;
+    } else {
+      post_nodes_l = post_nodes;
+    }
+
     tracef("j: %i, istep: %i, iout: %i, iout_l: %f\n", j, istep[j], iout[j], iout_l);
-    (rea_j, map_j, config) = app_regen (base, tusr, name_j, tdir_f, "num_steps", toFloat(step_block), "restart",   iout_l);
+    if (time_block > 0.0) {
+      (rea_j, map_j, config) = app_regen (base, tusr, name_j, tdir_f, "end_time", times[j] + time_block, "restart",   iout_l);
+    }else{
+      (rea_j, map_j, config) = app_regen (base, tusr, name_j, tdir_f, "num_steps", toFloat(sprintf("%i",step_block)), "restart",   iout_l);
+    }
 
     /* Run Nek! */
     file donek_o <single_file_mapper; file=sprintf("%s/%s-%d.output", tdir, name, j)>;
@@ -98,22 +126,23 @@ foreach pval,i in pvals {
     file analyze_e <single_file_mapper; file=sprintf("%s/analyze-%d_err.txt", tdir, j)>;
     file[] pngs <filesys_mapper; pattern=sprintf("%s/%s*.png", tdir, name_j)>;
     //file chest <single_file_mapper; file=sprintf("%s/%s-results", tdir, name_j)>;
-    (analyze_o, analyze_e, pngs) = app_nek_analyze(config, outfiles, checkpoints, sprintf("%s/%s",tdir,name), istart, iout[j] + foo);
+    (analyze_o, analyze_e, pngs) = app_nek_analyze(config, outfiles, checkpoints, sprintf("%s/%s/%s",cwd, tdir,name), analysis, istart, iout[j] + foo, post_nodes);
     
 
     /* Archive the outputs to HPSS  */
     file arch_o <single_file_mapper; file=sprintf("%s/arch-%d.output", tdir, j)>;
     file arch_e <single_file_mapper; file=sprintf("%s/arch-%d.error", tdir, j)>;
-    (arch_o, arch_e) = app_archive(sprintf("%s/%s", tdir, name), outfiles, checkpoints, istart, iout[j] + foo);
+    (arch_o, arch_e) = app_archive(sprintf("%s/%s/%s", exp_name, tdir, name), outfiles, checkpoints, istart, iout[j] + foo);
  
     /* Publish the outputs to Petrel */
     file uplo_o <single_file_mapper; file=sprintf("%s/uplo-%d.output", tdir, j)>;
     file uplo_e <single_file_mapper; file=sprintf("%s/uplo-%d.error", tdir, j)>;
-    (uplo_o, uplo_e) = app_upload(sprintf("%s/%s", tdir, name), config, pngs, istart, iout[j]+foo);
+    (uplo_o, uplo_e) = app_upload(sprintf("%s/%s/%s", exp_name, tdir, name), config, pngs, istart, iout[j]+foo);
 
     if (istep[j]+step_block < nstep){
      istep[j+1] = istep[j] + step_block;
      iout[j+1] = iout[j] + foo;
+     times[j+1] = times[j] + time_block;
     }
   }  
 }
