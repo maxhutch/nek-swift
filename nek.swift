@@ -1,3 +1,4 @@
+//import "stdlib.v2";
 import "apps";
 
 (int retcode) sweep (string prefix, file json, file tusr, 
@@ -14,7 +15,8 @@ import "apps";
 retcode = 1;
 int foo;
 if (time_block > 0.0 && io_time > 0.0){
-  foo = toInt(sprintf("%1.0f", time_block / io_time));
+  //foo = toInt(sprintf("%1.0f", time_block / io_time));
+  foo = 0;
 } else {
   foo = step_block %/ io_step;
 }
@@ -41,7 +43,7 @@ foreach pval,i in pvals {
   (usr, rea, map, base, size_mod) = genrun (json, tusr, name, tdir_f, pname, pval, _legacy=legacy);
   
   file nek5000 <single_file_mapper; file=sprintf("%s/nek5000", tdir, name)>;
-  (nek5000) = makenek(tdir_f, "/home/maxhutch/nek/", name, usr, size_mod, _legacy=legacy);
+  (nek5000) = makenek(tdir_f, "/projects/HighAspectRTI/nek/", name, usr, size_mod, _legacy=legacy);
 
   int[] iout; iout[j0] = j0 * foo + 1;
   int[] istep; istep[j0] = j0*step_block;
@@ -126,7 +128,7 @@ foreach pval,i in pvals {
     file analyze_e <single_file_mapper; file=sprintf("%s/analyze-%d_err.txt", tdir, j)>;
     file[] pngs <filesys_mapper; pattern=sprintf("%s/%s*.png", tdir, name_j)>;
     //file chest <single_file_mapper; file=sprintf("%s/%s-results", tdir, name_j)>;
-    (analyze_o, analyze_e, pngs) = app_nek_analyze(config, outfiles, checkpoints, sprintf("%s/%s/%s",cwd, tdir,name), analysis, istart, iout[j] + foo, post_nodes);
+    (analyze_o, analyze_e, pngs) = app_nek_analyze(config, outfiles, checkpoints, sprintf("%s/%s/%s",cwd, tdir,name), analysis, istart, iout[j] + foo, post_nodes_l);
     
 
     /* Archive the outputs to HPSS  */
