@@ -112,6 +112,24 @@ app_nek_analyze
   }
 }
 
+/*
+app
+(file _err)
+app_remove
+(string _s)
+{
+  rm "-f"  _s stderr=@_err;
+}
+*/
+
+app
+(file _err)
+clean
+(file[] _to_clean, file _dep1, file _dep2)
+{
+  rm "-f" filenames(_to_clean) stderr=@_err;
+}
+
 app
 (file _out, file _err)
 app_archive
@@ -123,7 +141,7 @@ app_archive
 app
 (file _out, file _err)
 app_upload
-(string _name, file _config, file[] _img, int _start, int _end)
+(string _name, file[] _raw, file[] _checkpoint, file _config, file[] _img, int _start, int _end)
 {
   post_proc _name "-f" _start "-e" _end "--no-archive" "--no-process" "--no-sync" "--upload" stdout=@_out stderr=@_err;
 }

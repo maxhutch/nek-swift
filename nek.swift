@@ -25,7 +25,7 @@ string[] cwds = strsplit(cwd, "/");
 string exp_name = cwds[length(cwds)-1];
 
 foreach pval,i in pvals {
-
+// qvals
   /* Pick a directory to run in */
   string tdir = sprintf("./%s_%s_%f", prefix, pname, pval);
   string name = sprintf("./%s_%s_%f", prefix, pname, pval);
@@ -135,11 +135,18 @@ foreach pval,i in pvals {
     file arch_o <single_file_mapper; file=sprintf("%s/arch-%d.output", tdir, j)>;
     file arch_e <single_file_mapper; file=sprintf("%s/arch-%d.error", tdir, j)>;
     (arch_o, arch_e) = app_archive(sprintf("%s/%s/%s", exp_name, tdir, name), outfiles, checkpoints, istart, iout[j] + foo);
+
+    if (j > 0) {
+      file clean_o <single_file_mapper; file=sprintf("%s/clean-%d.output", tdir, j)>;
+      (clean_o) = clean(outfiles, arch_o, analyze_o);
+      file clean2_o <single_file_mapper; file=sprintf("%s/clean2-%d.output", tdir, j)>;
+      (clean2_o) = clean(checkpoints_j[j-1], arch_o, analyze_o);
+    }
  
     /* Publish the outputs to Petrel */
     file uplo_o <single_file_mapper; file=sprintf("%s/uplo-%d.output", tdir, j)>;
     file uplo_e <single_file_mapper; file=sprintf("%s/uplo-%d.error", tdir, j)>;
-    (uplo_o, uplo_e) = app_upload(sprintf("%s/%s/%s", exp_name, tdir, name), config, pngs, istart, iout[j]+foo);
+    (uplo_o, uplo_e) = app_upload(sprintf("%s/%s/%s", exp_name, tdir, name), outfiles, checkpoints, config, pngs, istart, iout[j]+foo);
 
     if (istep[j]+step_block < nstep){
      istep[j+1] = istep[j] + step_block;
