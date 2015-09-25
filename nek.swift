@@ -30,7 +30,6 @@ foreach pval,i in pvals {
   string tdir = sprintf("./%s_%s_%f", prefix, pname, pval);
   string name = sprintf("./%s_%s_%f", prefix, pname, pval);
   file tdir_f  <single_file_mapper; file=strcat(cwd,"/",tdir)>;
-  //(tdir_f) = mkdir(tdir);
 
   /* Construct input files and build the nek5000 executable */
   file base     <single_file_mapper; file=sprintf("%s/%s.json", tdir, name)>;
@@ -51,7 +50,6 @@ foreach pval,i in pvals {
   
   string[][] outfile_names_j;
   string[][] checkpoint_names_j;
-  file[][] outfiles_j;
   file[][] checkpoints_j;
 
   if (j0 > 0){
@@ -59,9 +57,7 @@ foreach pval,i in pvals {
     (checkpoint_names, outfile_names) = nek_out_names(tdir, name, iout[j0]-1, iout[j0], nwrite);
     outfile_names_j[j0-1] = outfile_names;
     checkpoint_names_j[j0-1] = checkpoint_names;
-    file[] outfiles <array_mapper; files=outfile_names>;
     file[] checkpoints <array_mapper; files=checkpoint_names>;
-    outfiles_j[j0-1] = outfiles;
     checkpoints_j[j0-1] = checkpoints;
   }
 
@@ -81,6 +77,7 @@ foreach pval,i in pvals {
       iout_l = toFloat(sprintf("%i",iout[j]));
       istart = iout[j] + 1;
     }
+    iout[j+1] = iout[j] + foo;
     int post_nodes_l;
     if (post_nodes < 1){
       post_nodes_l = iout[j] + foo - istart + 1;
@@ -99,42 +96,32 @@ foreach pval,i in pvals {
     file donek_o <single_file_mapper; file=sprintf("%s/%s-%d.output", tdir, name, j)>;
     file donek_e <single_file_mapper; file=sprintf("%s/%s-%d.error", tdir, name, j)>;
     string[] checkpoint_names, outfile_names;
-    (checkpoint_names, outfile_names) = nek_out_names(tdir, name, istart, iout[j] + foo, nwrite);
+    (checkpoint_names, outfile_names) = nek_out_names(tdir, name, istart, iout[j+1], nwrite);
     outfile_names_j[j] = outfile_names;
     checkpoint_names_j[j] = checkpoint_names;
     file[] outfiles <array_mapper; files=outfile_names>;
     file[] checkpoints <array_mapper; files=checkpoint_names>;
-    outfiles_j[j] = outfiles;
-    checkpoints_j[j] = checkpoints;
-
 
     if (j == 0){
       (donek_o, donek_e, outfiles, checkpoints) = app_donek(rea_j, map_j, tdir_f, name_j, name, nek5000, nodes, mode, job_time);
-    } else {
-      /* 
-      string[] new_checkpoints, new_outputs;
-      (new_checkpoints, new_outputs) = nek_out_names(tdir, name, istart-2, istart-1, nwrite);
-      file[] checks_new <array_mapper; files=new_checkpoints>;
-      foreach f,ii in checkpoints_j[j-1]{
-        checks_new[ii] = app_cp(f);
-      }
-      */
-      
+    } else {      
       (donek_o, donek_e, outfiles, checkpoints) = app_donek_restart(rea_j, map_j, tdir_f, name_j, name, nek5000, checkpoints_j[j-1], nodes, mode, job_time);
     }
  
+    checkpoints_j[j] = checkpoints;
+
     /* Analyze the outputs, making a bunch of pngs */
     file analyze_o <single_file_mapper; file=sprintf("%s/analyze-%d_out.txt", tdir, j)>;
     file analyze_e <single_file_mapper; file=sprintf("%s/analyze-%d_err.txt", tdir, j)>;
-    file[] pngs <filesys_mapper; pattern=sprintf("%s/%s*.png", tdir, name_j)>;
+    file[] pngs <filesys_mapper; pattern=sprintf("%s/img/%s*.png", tdir, name_j)>;
     //file chest <single_file_mapper; file=sprintf("%s/%s-results", tdir, name_j)>;
-    (analyze_o, analyze_e, pngs) = app_nek_analyze(config, outfiles, checkpoints, sprintf("%s/%s/%s",cwd, tdir,name), analysis, istart, iout[j] + foo, post_nodes_l);
+    (analyze_o, analyze_e, pngs) = app_nek_analyze(config, outfiles, checkpoints, sprintf("%s/%s/%s",cwd, tdir,name), analysis, istart, iout[j+1], post_nodes_l);
     
 
     /* Archive the outputs to HPSS  */
     file arch_o <single_file_mapper; file=sprintf("%s/arch-%d.output", tdir, j)>;
     file arch_e <single_file_mapper; file=sprintf("%s/arch-%d.error", tdir, j)>;
-    (arch_o, arch_e) = app_archive(sprintf("%s/%s/%s", exp_name, tdir, name), outfiles, checkpoints, istart, iout[j] + foo);
+    (arch_o, arch_e) = app_archive(sprintf("%s/%s/%s", exp_name, tdir, name), outfiles, checkpoints, istart, iout[j+1]);
 
     if (j > 0) {
       file clean_o <single_file_mapper; file=sprintf("%s/clean-%d.output", tdir, j)>;
@@ -146,11 +133,10 @@ foreach pval,i in pvals {
     /* Publish the outputs to Petrel */
     file uplo_o <single_file_mapper; file=sprintf("%s/uplo-%d.output", tdir, j)>;
     file uplo_e <single_file_mapper; file=sprintf("%s/uplo-%d.error", tdir, j)>;
-    (uplo_o, uplo_e) = app_upload(sprintf("%s/%s/%s", exp_name, tdir, name), outfiles, checkpoints, config, pngs, istart, iout[j]+foo);
+    (uplo_o, uplo_e) = app_upload(sprintf("%s/%s/%s", exp_name, tdir, name), outfiles, checkpoints, config, pngs, istart, iout[j+1]);
 
     if (istep[j]+step_block < nstep){
      istep[j+1] = istep[j] + step_block;
-     iout[j+1] = iout[j] + foo;
      times[j+1] = times[j] + time_block;
     }
   }  
