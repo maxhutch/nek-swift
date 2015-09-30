@@ -84,7 +84,7 @@ app_donek
 app
 (file _out, file _err, file[] _RTIfiles, file[] _checkpoint)
 app_donek_restart
-(file _rea, file _map, file _tdir, string _name, string _series, file _nek5000, file[] _inpoint, int _nodes, int _mode, int _time)
+(file _rea, file _map, file _tdir, string _name, string _series, file _nek5000, file[] _inpoint, int _nodes, int _mode, int _time, file _dep)
 {
  //nekmpi _name 4 _tdir stdout=@_out stderr=@_err;
  nekmpi _name _series toString(_nodes) toString(_mode) _time @_tdir;
@@ -111,6 +111,34 @@ app_nek_analyze
     _checkpoint[j] = sprintf("%s/A%s/%s%s.f%s", _tdir, pad(3, j), _name, pad(3,j), pad(5, _nend));
   }
 }
+
+(string[][] _checkpoints, string[][] _ofs) nek_out_names_all(string _tdir, string _name, int _njob, int _ninc, int _nwrite)
+{
+    foreach i in [1:_ninc]{
+      foreach j in [0:_nwrite-1]{
+        _ofs[0][(i-1)*_nwrite + j] = sprintf("%s/A%s/%s%s.f%s", _tdir, pad(3, j), _name, pad(3,j), pad(5, i));
+      }
+    }
+
+    foreach j in [0:_nwrite-1]{
+      _checkpoints[0][j] = sprintf("%s/A%s/%s%s.f%s", _tdir, pad(3, j), _name, pad(3,j), pad(5, _ninc+1));
+    }
+ 
+
+  foreach k in [1:_njob-1]{
+    foreach i in [k*_ninc+2:(k+1)*_ninc]{
+      foreach j in [0:_nwrite-1]{
+        _ofs[k][(i-k*_ninc-2)*_nwrite + j] = sprintf("%s/A%s/%s%s.f%s", _tdir, pad(3, j), _name, pad(3,j), pad(5, i));
+      }
+    }
+
+    foreach j in [0:_nwrite-1]{
+      _checkpoints[k][j] = sprintf("%s/A%s/%s%s.f%s", _tdir, pad(3, j), _name, pad(3,j), pad(5, (k+1)*_ninc+1));
+    }
+
+  }
+}
+
 
 /*
 app

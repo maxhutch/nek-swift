@@ -56,15 +56,21 @@ foreach pval,i in pvals {
   int[] iout; iout[j0] = j0 * outputs_per_job + 1;
   int[] istep; istep[j0] = j0*job_step;
   float[] times; times[j0] = job_time * j0;
-  
-  file[][] checkpoints_j;
+ 
+  string[][] checkpoint_names_all;
+  string[][] outfile_names_all;
+  (checkpoint_names_all, outfile_names_all) = nek_out_names_all(tdir, name, 4, outputs_per_job, nwrite);
+  file[][] checkpoints_j <array_mapper; files=checkpoint_names_all>;
+  file[] stdout_j;
 
+  /*
   if (j0 > 0){
     string[] checkpoint_names, outfile_names;
     (checkpoint_names, outfile_names) = nek_out_names(tdir, name, iout[j0]-1, iout[j0], nwrite);
     file[] checkpoints <array_mapper; files=checkpoint_names>;
     checkpoints_j[j0-1] = checkpoints;
   }
+  */
 
 
   /* Time or Iteration loop */
@@ -108,15 +114,16 @@ foreach pval,i in pvals {
     string[] checkpoint_names, outfile_names;
     (checkpoint_names, outfile_names) = nek_out_names(tdir, name, istart, iout[j+1], nwrite);
     file[] outfiles <array_mapper; files=outfile_names>;
-    file[] checkpoints <array_mapper; files=checkpoint_names>;
-    checkpoints_j[j] = checkpoints;
+    //file[] checkpoints <array_mapper; files=checkpoint_names>;
+    //checkpoints_j[j] = checkpoints;
 
     /* Run Nek! */
     if (j == 0){
       (donek_o, donek_e, outfiles, checkpoints_j[j]) = app_donek(rea_j, map_j, tdir_f, name_j, name, nek5000, nodes, mode, job_wall);
     } else {      
-      (donek_o, donek_e, outfiles, checkpoints_j[j]) = app_donek_restart(rea_j, map_j, tdir_f, name_j, name, nek5000, checkpoints_j[j-1], nodes, mode, job_wall);
+      (donek_o, donek_e, outfiles, checkpoints_j[j]) = app_donek_restart(rea_j, map_j, tdir_f, name_j, name, nek5000, checkpoints_j[j-1], nodes, mode, job_wall, stdout_j[j-1]);
     }
+    stdout_j[j] = donek_o;
 
     /* Log the checkpoints so we can checkpoint from them */ 
 
@@ -125,12 +132,12 @@ foreach pval,i in pvals {
     file analyze_e <single_file_mapper; file=sprintf("%s/analyze-%d_err.txt", tdir, j)>;
     file[] pngs <filesys_mapper; pattern=sprintf("%s/img/%s*.png", tdir, name_j)>;
     //file chest <single_file_mapper; file=sprintf("%s/%s-results", tdir, name_j)>;
-    (analyze_o, analyze_e, pngs) = app_nek_analyze(config, outfiles, checkpoints, sprintf("%s/%s/%s",cwd, tdir,name), analysis, istart, iout[j+1], post_nodes_l);
+    (analyze_o, analyze_e, pngs) = app_nek_analyze(config, outfiles, checkpoints_j[j], sprintf("%s/%s/%s",cwd, tdir,name), analysis, istart, iout[j+1], post_nodes_l);
     
     /* Archive the outputs to HPSS  */
     file arch_o <single_file_mapper; file=sprintf("%s/arch-%d.output", tdir, j)>;
     file arch_e <single_file_mapper; file=sprintf("%s/arch-%d.error", tdir, j)>;
-    (arch_o, arch_e) = app_archive(sprintf("%s/%s/%s", exp_name, tdir, name), outfiles, checkpoints, istart, iout[j+1]);
+    (arch_o, arch_e) = app_archive(sprintf("%s/%s/%s", exp_name, tdir, name), outfiles, checkpoints_j[j], istart, iout[j+1]);
 
     /* If this isn't the first iteration, clean up the extra files
        we save the first iteration because it contains the positions */
@@ -144,7 +151,7 @@ foreach pval,i in pvals {
     /* Publish the outputs to Petrel */
     file uplo_o <single_file_mapper; file=sprintf("%s/uplo-%d.output", tdir, j)>;
     file uplo_e <single_file_mapper; file=sprintf("%s/uplo-%d.error", tdir, j)>;
-    (uplo_o, uplo_e) = app_upload(sprintf("%s/%s/%s", exp_name, tdir, name), outfiles, checkpoints, config, pngs, istart, iout[j+1]);
+    (uplo_o, uplo_e) = app_upload(sprintf("%s/%s/%s", exp_name, tdir, name), outfiles, checkpoints_j[j], config, pngs, istart, iout[j+1]);
 
     /* If we aren't done, then setup the next iteration */
     if (istep[j]+job_step < nstep){
