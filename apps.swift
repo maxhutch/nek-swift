@@ -112,6 +112,7 @@ app_nek_analyze
   }
 }
 
+/*
 (string[][] _checkpoints, string[][] _ofs) nek_out_names_all(string _tdir, string _name, int _njob, int _ninc, int _nwrite)
 {
     foreach i in [1:_ninc]{
@@ -138,6 +139,7 @@ app_nek_analyze
 
   }
 }
+*/
 
 
 /*

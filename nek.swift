@@ -57,11 +57,19 @@ foreach pval,i in pvals {
   int[] istep; istep[j0] = j0*job_step;
   float[] times; times[j0] = job_time * j0;
  
-  string[][] checkpoint_names_all;
-  string[][] outfile_names_all;
-  (checkpoint_names_all, outfile_names_all) = nek_out_names_all(tdir, name, 4, outputs_per_job, nwrite);
-  file[][] checkpoints_j <array_mapper; files=checkpoint_names_all>;
+  //string[][] checkpoint_names_all;
+  //string[][] outfile_names_all;
+  //(checkpoint_names_all, outfile_names_all) = nek_out_names_all(tdir, name, 4, outputs_per_job, nwrite);
+
+  trace("Foo");
+  file[][] checkpoints_j <ext; exec="map.sh", tdir=tdir, name=name, jobs=4, inc=outputs_per_job, nwrite=nwrite>;
+  trace("bar");
   file[] stdout_j;
+
+
+  trace("Spam");
+  trace(filenames(checkpoints_j));
+  trace("Eggs");
 
   /*
   if (j0 > 0){
