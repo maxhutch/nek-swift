@@ -112,6 +112,12 @@ app_nek_analyze
   }
 }
 
+(string[] _outs) prepend_vec(string[] _ins, string head){
+  foreach cname,k in _ins {
+    _outs[k] = strcat(head, "/", cname);
+  }
+}
+
 /*
 (string[][] _checkpoints, string[][] _ofs) nek_out_names_all(string _tdir, string _name, int _njob, int _ninc, int _nwrite)
 {
@@ -159,6 +165,15 @@ clean
 {
   rm "-f" filenames(_to_clean) stderr=@_err;
 }
+
+app
+(file _err)
+clean_str
+(string[] _to_clean, file _dep1, file _dep2)
+{
+  rm "-f" _to_clean stderr=@_err;
+}
+
 
 app
 (file _out, file _err)

@@ -57,28 +57,30 @@ foreach pval,i in pvals {
   int[] istep; istep[j0] = j0*job_step;
   float[] times; times[j0] = job_time * j0;
  
-  //string[][] checkpoint_names_all;
+  string[][] checkpoint_names_j;
   //string[][] outfile_names_all;
   //(checkpoint_names_all, outfile_names_all) = nek_out_names_all(tdir, name, 4, outputs_per_job, nwrite);
 
-  trace("Foo");
-  file[][] checkpoints_j <ext; exec="map.sh", tdir=tdir, name=name, jobs=4, inc=outputs_per_job, nwrite=nwrite>;
-  trace("bar");
+  //trace("Foo");
+  //file[][] checkpoints_j <ext; exec="map.sh", tdir=tdir, name=name, jobs=128, inc=outputs_per_job, nwrite=nwrite>;
+  file[][] checkpoints_j;
+  //trace("bar");
   file[] stdout_j;
 
 
-  trace("Spam");
-  trace(filenames(checkpoints_j));
-  trace("Eggs");
+  //trace("Spam");
+  //trace(filenames(checkpoints_j));
+  //trace("Eggs");
 
-  /*
   if (j0 > 0){
     string[] checkpoint_names, outfile_names;
     (checkpoint_names, outfile_names) = nek_out_names(tdir, name, iout[j0]-1, iout[j0], nwrite);
+    checkpoint_names_j[j0-1] = checkpoint_names;
     file[] checkpoints <array_mapper; files=checkpoint_names>;
     checkpoints_j[j0-1] = checkpoints;
+    file donek_o <single_file_mapper; file=sprintf("%s/%s-%d.output", tdir, name, j0-1)>;
+    stdout_j[j0-1] = donek_o;
   }
-  */
 
 
   /* Time or Iteration loop */
@@ -120,18 +122,28 @@ foreach pval,i in pvals {
     file donek_o <single_file_mapper; file=sprintf("%s/%s-%d.output", tdir, name, j)>;
     file donek_e <single_file_mapper; file=sprintf("%s/%s-%d.error", tdir, name, j)>;
     string[] checkpoint_names, outfile_names;
-    (checkpoint_names, outfile_names) = nek_out_names(tdir, name, istart, iout[j+1], nwrite);
-    file[] outfiles <array_mapper; files=outfile_names>;
-    //file[] checkpoints <array_mapper; files=checkpoint_names>;
-    //checkpoints_j[j] = checkpoints;
 
     /* Run Nek! */
     if (j == 0){
-      (donek_o, donek_e, outfiles, checkpoints_j[j]) = app_donek(rea_j, map_j, tdir_f, name_j, name, nek5000, nodes, mode, job_wall);
+      (checkpoint_names, outfile_names) = nek_out_names(tdir, name, 2, iout[j+1], nwrite);
     } else {      
-      (donek_o, donek_e, outfiles, checkpoints_j[j]) = app_donek_restart(rea_j, map_j, tdir_f, name_j, name, nek5000, checkpoints_j[j-1], nodes, mode, job_wall, stdout_j[j-1]);
+      (checkpoint_names, outfile_names) = nek_out_names(tdir, name, istart, iout[j+1], nwrite);
+    }
+    file[] outfiles <array_mapper; files=outfile_names>;
+    file[] checkpoints <array_mapper; files=checkpoint_names>;
+    if (j == 0){
+      (donek_o, donek_e, outfiles, checkpoints) = app_donek(rea_j, map_j, tdir_f, name_j, name, nek5000, nodes, mode, job_wall);
+    } else {      
+      (donek_o, donek_e, outfiles, checkpoints) = app_donek_restart(rea_j, map_j, tdir_f, name_j, name, nek5000, checkpoints_j[j-1], nodes, mode, job_wall, stdout_j[j-1]);
     }
     stdout_j[j] = donek_o;
+    checkpoint_names_j[j] = prepend_vec(checkpoint_names, cwd);
+    checkpoints_j[j] = checkpoints;
+/*
+    foreach cname,k in checkpoint_names {
+      checkpoint_names_j[j][k] = strcat(cwd, "/", cname);
+    }
+*/
 
     /* Log the checkpoints so we can checkpoint from them */ 
 
@@ -149,11 +161,14 @@ foreach pval,i in pvals {
 
     /* If this isn't the first iteration, clean up the extra files
        we save the first iteration because it contains the positions */
+    file clean_o <single_file_mapper; file=sprintf("%s/clean-%d.output", tdir, j)>;
+    (clean_o) = clean(outfiles, arch_o, analyze_o);
     if (j > 0) {
-      file clean_o <single_file_mapper; file=sprintf("%s/clean-%d.output", tdir, j)>;
-      (clean_o) = clean(outfiles, arch_o, analyze_o);
+      /* These really depend on arch_o[j-1] and analyze_o[j-1], but those aren't stored */
       file clean2_o <single_file_mapper; file=sprintf("%s/clean2-%d.output", tdir, j)>;
       (clean2_o) = clean(checkpoints_j[j-1], arch_o, analyze_o);
+      file clean3_o <single_file_mapper; file=sprintf("%s/clean3-%d.output", tdir, j)>;
+      (clean3_o) = clean_str(checkpoint_names_j[j-1], arch_o, analyze_o);
     }
  
     /* Publish the outputs to Petrel */
