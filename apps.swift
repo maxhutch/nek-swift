@@ -3,27 +3,27 @@ type file;
 app 
 (file _usr, file _rea, file _map, file _config, file _size)
 app_genrun_new
-(file _json, file _tusr, string _name, file _tdir, string _pname, float _pval)
+(file _json, file _tusr, string _name, file _tdir, string _pname, float _pval, string _qname, float _qval)
 {
-  genrun "-d" @_json "-u" @_tusr "--tdir" @_tdir _name "--no-make" strcat("--override={\"",_pname,"\": ", _pval, "}");
+  genrun "-d" @_json "-u" @_tusr "--tdir" @_tdir _name "--no-make" strcat("--override={\"",_pname,"\": ", _pval, ", \"", _qname, "\": ", _qval, "}");
 }
 
 app 
 (file _usr, file _rea, file _map, file _config, file _size)
 app_genrun_old
-(file _json, file _tusr, string _name, file _tdir, string _pname, float _pval)
+(file _json, file _tusr, string _name, file _tdir, string _pname, float _pval, string _qname, float _qval)
 {
-  genrun "-d" @_json "-u" @_tusr "--tdir" @_tdir _name "--legacy" "--no-make" strcat("--override={\"",_pname,"\": ", _pval, "}");
+  genrun "-d" @_json "-u" @_tusr "--tdir" @_tdir _name "--legacy" "--no-make" strcat("--override={\"",_pname,"\": ", _pval, ", \"", _qname, "\": ", _qval, "}");
 }
 
 (file _usr, file _rea, file _map, file _config, file _size)
 genrun
-(file _json, file _tusr, string _name, file _tdir, string _pname, float _pval, boolean _legacy = false)
+(file _json, file _tusr, string _name, file _tdir, string _pname, float _pval, string _qname, float _qval, file _foo, boolean _legacy = false)
 {
   if (_legacy) {
-    (_usr, _rea, _map, _config, _size) = app_genrun_old(_json, _tusr, _name, _tdir, _pname, _pval);
+    (_usr, _rea, _map, _config, _size) = app_genrun_old(_json, _tusr, _name, _tdir, _pname, _pval, _qname, _qval);
   }else{
-    (_usr, _rea, _map, _config, _size) = app_genrun_new(_json, _tusr, _name, _tdir, _pname, _pval);
+    (_usr, _rea, _map, _config, _size) = app_genrun_new(_json, _tusr, _name, _tdir, _pname, _pval, _qname, _qval);
   }
 }
 
@@ -169,7 +169,7 @@ clean
 app
 (file _err)
 clean_str
-(string[] _to_clean, file _dep1, file _dep2)
+(string[] _to_clean, file _dep1, file _dep2, file _dep3)
 {
   rm "-f" _to_clean stderr=@_err;
 }
@@ -201,9 +201,9 @@ app_cp
 
 
 app
-(file _outdir)
+(file _foo)
 mkdir
-(string _dirname)
+(file _dirname)
 {
-  mkdir @_outdir;
+  mkdir filename(_dirname);
 }

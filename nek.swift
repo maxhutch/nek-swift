@@ -7,6 +7,8 @@ import "apps";
                      file    tusr,           // templated user file
                      string  pname,          // first parameter name
                      float[] pvals,          // array of values for first parameter
+                     string  qname,          // first parameter name
+                     float[] qvals,          // array of values for first parameter
                      int     nwrite,         // number of output files
                      int     nstep,          // total number of steps
                      int     io_step,        // output interval (iterations)
@@ -24,8 +26,11 @@ import "apps";
 retcode = 1;
 int outputs_per_job;
 if (job_time > 0.0 && io_time > 0.0){
-  //outputs_per_job = toInt(sprintf("%1.0f", job_time / io_time));
-  outputs_per_job = 0;
+  trace("Foo");
+  //outputs_per_job = toInt(job_time / io_time);
+  outputs_per_job = 2; //toInt(sprintf("%f", job_time / io_time));
+  //tracef("Foo!");
+  //outputs_per_job = 2;
 } else {
   outputs_per_job = job_step %/ io_step;
 }
@@ -34,11 +39,15 @@ string[] cwds = strsplit(cwd, "/");
 string exp_name = cwds[length(cwds)-1];
 
 foreach pval,i in pvals {
-// qvals
+foreach qval,ii in qvals {
+if (qval <= pval) {
+
   /* Pick a directory to run in */
-  string tdir = sprintf("./%s_%s_%f", prefix, pname, pval);
-  string name = sprintf("./%s_%s_%f", prefix, pname, pval);
+  string tdir = sprintf("./%s_v_%f_c_%f", prefix, pval, qval);
+  string name = sprintf("./%s_v_%f_c_%f", prefix, pval, qval);
   file tdir_f  <single_file_mapper; file=strcat(cwd,"/",tdir)>;
+  file foo     <single_file_mapper; file=strcat(cwd,"/",tdir, "/foo")>;
+  (foo) = mkdir(tdir_f);
 
   /* Construct input files and build the nek5000 executable */
   file base     <single_file_mapper; file=sprintf("%s/%s.json", tdir, name)>;
@@ -48,7 +57,7 @@ foreach pval,i in pvals {
   //file size_mod <single_file_mapper; file=sprintf("%s/SIZE",  tdir, name)>;
   file size_mod <single_file_mapper; file=sprintf("%s/size_mod.F90",  tdir)>;
 
-  (usr, rea, map, base, size_mod) = genrun (json, tusr, name, tdir_f, pname, pval, _legacy=legacy);
+  (usr, rea, map, base, size_mod) = genrun (json, tusr, name, tdir_f, pname, pval, qname, qval, foo, _legacy=legacy);
   
   file nek5000 <single_file_mapper; file=sprintf("%s/nek5000", tdir, name)>;
   (nek5000) = makenek(tdir_f, "/projects/HighAspectRTI/nek/", name, usr, size_mod, _legacy=legacy);
@@ -66,6 +75,8 @@ foreach pval,i in pvals {
   file[][] checkpoints_j;
   //trace("bar");
   file[] stdout_j;
+  file[] arch_j;
+  file[] analyze_j;
 
 
   //trace("Spam");
@@ -80,13 +91,17 @@ foreach pval,i in pvals {
     checkpoints_j[j0-1] = checkpoints;
     file donek_o <single_file_mapper; file=sprintf("%s/%s-%d.output", tdir, name, j0-1)>;
     stdout_j[j0-1] = donek_o;
+    file arch_o <single_file_mapper; file=sprintf("%s/arch-%d.output", tdir, j0-1)>;
+    arch_j[j0-1] = arch_o;
+    file analyze_o <single_file_mapper; file=sprintf("%s/analyze-%d_out.txt", tdir, j0-1)>;
+    analyze_j[j0-1] = analyze_o;
   }
 
 
   /* Time or Iteration loop */
   foreach eh,j in istep{
     /* Configure the next iteration */
-    string name_j = sprintf("./%s_%s_%f-%d", prefix, pname, pval, j);
+    string name_j = sprintf("./%s_v_%f_c_%f-%d", prefix, pval, qval, j);
     file config     <single_file_mapper; file=sprintf("%s/%s-%d.json", tdir, name, j)>;
     file rea_j      <single_file_mapper; file=sprintf("%s/%s-%d.rea",  tdir, name, j)>;
     file map_j      <single_file_mapper; file=sprintf("%s/%s-%d.map",  tdir, name, j)>;
@@ -152,29 +167,31 @@ foreach pval,i in pvals {
     file analyze_e <single_file_mapper; file=sprintf("%s/analyze-%d_err.txt", tdir, j)>;
     file[] pngs <filesys_mapper; pattern=sprintf("%s/img/%s*.png", tdir, name_j)>;
     //file chest <single_file_mapper; file=sprintf("%s/%s-results", tdir, name_j)>;
-    (analyze_o, analyze_e, pngs) = app_nek_analyze(config, outfiles, checkpoints_j[j], sprintf("%s/%s/%s",cwd, tdir,name), analysis, istart, iout[j+1], post_nodes_l);
+    (analyze_o, analyze_e, pngs) = app_nek_analyze(config, outfiles, checkpoints, sprintf("%s/%s/%s",cwd, tdir,name), analysis, istart, iout[j+1], post_nodes_l);
+    analyze_j[j] = analyze_o;
     
     /* Archive the outputs to HPSS  */
     file arch_o <single_file_mapper; file=sprintf("%s/arch-%d.output", tdir, j)>;
     file arch_e <single_file_mapper; file=sprintf("%s/arch-%d.error", tdir, j)>;
-    (arch_o, arch_e) = app_archive(sprintf("%s/%s/%s", exp_name, tdir, name), outfiles, checkpoints_j[j], istart, iout[j+1]);
+    (arch_o, arch_e) = app_archive(sprintf("%s/%s/%s", exp_name, tdir, name), outfiles, checkpoints, istart, iout[j+1]);
+    arch_j[j] = arch_o;
 
     /* If this isn't the first iteration, clean up the extra files
        we save the first iteration because it contains the positions */
     file clean_o <single_file_mapper; file=sprintf("%s/clean-%d.output", tdir, j)>;
     (clean_o) = clean(outfiles, arch_o, analyze_o);
+    file clean2_o <single_file_mapper; file=sprintf("%s/clean2-%d.output", tdir, j)>;
+    (clean2_o) = clean(checkpoints_j[j], arch_o, analyze_o);
     if (j > 0) {
       /* These really depend on arch_o[j-1] and analyze_o[j-1], but those aren't stored */
-      file clean2_o <single_file_mapper; file=sprintf("%s/clean2-%d.output", tdir, j)>;
-      (clean2_o) = clean(checkpoints_j[j-1], arch_o, analyze_o);
       file clean3_o <single_file_mapper; file=sprintf("%s/clean3-%d.output", tdir, j)>;
-      (clean3_o) = clean_str(checkpoint_names_j[j-1], arch_o, analyze_o);
+      (clean3_o) = clean_str(checkpoint_names_j[j-1], arch_j[j-1], analyze_j[j-1], donek_o);
     }
  
     /* Publish the outputs to Petrel */
     file uplo_o <single_file_mapper; file=sprintf("%s/uplo-%d.output", tdir, j)>;
     file uplo_e <single_file_mapper; file=sprintf("%s/uplo-%d.error", tdir, j)>;
-    (uplo_o, uplo_e) = app_upload(sprintf("%s/%s/%s", exp_name, tdir, name), outfiles, checkpoints_j[j], config, pngs, istart, iout[j+1]);
+    (uplo_o, uplo_e) = app_upload(sprintf("%s/%s/%s", exp_name, tdir, name), outfiles, checkpoints, config, pngs, istart, iout[j+1]);
 
     /* If we aren't done, then setup the next iteration */
     if (istep[j]+job_step < nstep){
@@ -182,6 +199,9 @@ foreach pval,i in pvals {
      times[j+1] = times[j] + job_time;
     }
   }  
+
+}
+}
 }
 
 }
