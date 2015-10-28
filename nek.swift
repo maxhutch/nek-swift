@@ -141,7 +141,7 @@ series
     /* If this isn't the first iteration, clean up the extra files
        we save the first iteration because it contains the positions */
     file clean_o <single_file_mapper; file=sprintf("%s/clean-%d.output", tdir, j)>;
-    (clean_o) = clean_str(outfile_names, arch_o, analyze_o, donek_o);
+    (clean_o) = clean_str(prepend_vec(outfile_names, cwd), arch_o, analyze_o, donek_o);
     file clean2_o <single_file_mapper; file=sprintf("%s/clean2-%d.output", tdir, j)>;
     (clean2_o) = clean(checkpoints_j[j], arch_o, analyze_o);
     if (j > 0) {
