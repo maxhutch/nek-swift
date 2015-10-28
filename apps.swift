@@ -13,19 +13,33 @@ app
 app_genrun_old
 (file _json, file _tusr, string _name, file _tdir, string _pname, float _pval, string _qname, float _qval)
 {
-  genrun "-d" @_json "-u" @_tusr "--tdir" @_tdir _name "--legacy" "--no-make" strcat("--override={\"",_pname,"\": ", _pval, ", \"", _qname, "\": ", _qval, "}");
+    genrun "-d" @_json "-u" @_tusr "--tdir" @_tdir _name "--legacy" "--no-make" strcat("--override={\"",_pname,"\": ", _pval, ", \"", _qname, "\": ", _qval, "}");
 }
 
+app
 (file _usr, file _rea, file _map, file _config, file _size)
 genrun
 (file _json, file _tusr, string _name, file _tdir, string _pname, float _pval, string _qname, float _qval, file _foo, boolean _legacy = false)
 {
-  if (_legacy) {
-    (_usr, _rea, _map, _config, _size) = app_genrun_old(_json, _tusr, _name, _tdir, _pname, _pval, _qname, _qval);
-  }else{
-    (_usr, _rea, _map, _config, _size) = app_genrun_new(_json, _tusr, _name, _tdir, _pname, _pval, _qname, _qval);
-  }
+//  if (_legacy) {
+//    genrun "-d" @_json "-u" @_tusr "--tdir" @_tdir _name "--legacy" "--no-make" strcat("--override={\"",_pname,"\": ", _pval, ", \"", _qname, "\": ", _qval, "}");
+//  }else{
+    genrun "-d" @_json "-u" @_tusr "--tdir" @_tdir _name "--no-make" strcat("--override={\"",_pname,"\": ", _pval, ", \"", _qname, "\": ", _qval, "}");
+//  }
 }
+
+app
+(file _usr, file _rea, file _map, file _config, file _size)
+genrun_str
+(file _json, file _tusr, string _name, file _tdir, string _override, file _foo, boolean _legacy = false)
+{
+//  if (_legacy) {
+//    genrun "-d" @_json "-u" @_tusr "--tdir" @_tdir _name "--legacy" "--no-make" strcat("--override=", _override);
+//  }else{
+    genrun "-d" @_json "-u" @_tusr "--tdir" @_tdir _name "--no-make" strcat("--override=", _override);
+//  }
+}
+
 
 app 
 (file _config)
@@ -41,6 +55,14 @@ app_regen
 (file _json, file _tusr, string _name, file _tdir, string _pname, float _pval, string _pname2, float _pval2)
 {
   genrun "-d" @_json "-u" @_tusr "--tdir" @_tdir _name "--no-make" strcat("--override={\"",_pname,"\": ", _pval, ", \"", _pname2, "\": ", _pval2, "}");
+}
+
+app 
+(file _rea, file _map, file _config)
+app_regen_str
+(file _json, file _tusr, string _name, file _tdir, string _override)
+{
+  genrun "-d" @_json "-u" @_tusr "--tdir" @_tdir _name "--no-make" strcat("--override=", _override);
 }
 
 
