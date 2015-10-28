@@ -1,66 +1,33 @@
 //import "stdlib.v2";
 import "apps";
 
-(int retcode) sweep (
-                     string  prefix,         // prefix for directories, files
-                     file    json,           // baseline configuration 
-                     file    tusr,           // templated user file
-                     string  pname,          // first parameter name
-                     float[] pvals,          // array of values for first parameter
-                     string  qname,          // first parameter name
-                     float[] qvals,          // array of values for first parameter
-                     int     nwrite,         // number of output files
-                     int     nstep,          // total number of steps
-                     int     io_step,        // output interval (iterations)
-                     int     job_step,       // job interval (iterations)
-                     float   io_time,        // output interval (time) (0 if unused)
-                     float   job_time,       // job interval (time) (0 if unused)
-                     int     nodes,          // nodes for simulation
-                     int     mode,           // mode for simulation
-                     int     job_wall,       // time for simulation
-                     int     j0=0,           // starting job index
-                     string  analysis="RTI", // analysis package name
-                     boolean legacy=false,   // legacy mode
-                     int     post_nodes=0    // nodes for post-processing
-                    ){
-retcode = 1;
-int outputs_per_job;
-if (job_time > 0.0 && io_time > 0.0){
-  trace("Foo");
-  //outputs_per_job = toInt(job_time / io_time);
-  outputs_per_job = 2; //toInt(sprintf("%f", job_time / io_time));
-  //tracef("Foo!");
-  //outputs_per_job = 2;
-} else {
-  outputs_per_job = job_step %/ io_step;
-}
-string cwd = arg("cwd", ".");
-string[] cwds = strsplit(cwd, "/");
-string exp_name = cwds[length(cwds)-1];
+(int retcode) 
+series
+(
+  file nek5000,
+  int nodes,
+  int mode,
+  string cwd,
+  string tdir,
+  file tdir_f,
+  string name,
+  int nwrite,
+  file base,
+  file tusr,
+  float job_time,
+  int nstep,
+  int job_step,
+  int outputs_per_job,
+  int job_wall = 60,
+  int post_nodes = 0,
+  string analysis = "RTI",
+  int j0 = 0
+)
+{
 
-foreach pval,i in pvals {
-foreach qval,ii in qvals {
-if (qval <= pval) {
+  string[] cwds = strsplit(cwd, "/");
+  string exp_name = cwds[length(cwds)-1];
 
-  /* Pick a directory to run in */
-  string tdir = sprintf("./%s_v_%f_c_%f", prefix, pval, qval);
-  string name = sprintf("./%s_v_%f_c_%f", prefix, pval, qval);
-  file tdir_f  <single_file_mapper; file=strcat(cwd,"/",tdir)>;
-  file foo     <single_file_mapper; file=strcat(cwd,"/",tdir, "/foo")>;
-  (foo) = mkdir(tdir_f);
-
-  /* Construct input files and build the nek5000 executable */
-  file base     <single_file_mapper; file=sprintf("%s/%s.json", tdir, name)>;
-  file rea      <single_file_mapper; file=sprintf("%s/%s.rea",  tdir, name)>;
-  file map      <single_file_mapper; file=sprintf("%s/%s.map",  tdir, name)>;
-  file usr      <single_file_mapper; file=sprintf("%s/%s.usr",  tdir, name)>;
-  //file size_mod <single_file_mapper; file=sprintf("%s/SIZE",  tdir, name)>;
-  file size_mod <single_file_mapper; file=sprintf("%s/size_mod.F90",  tdir)>;
-
-  (usr, rea, map, base, size_mod) = genrun (json, tusr, name, tdir_f, pname, pval, qname, qval, foo, _legacy=legacy);
-  
-  file nek5000 <single_file_mapper; file=sprintf("%s/nek5000", tdir, name)>;
-  (nek5000) = makenek(tdir_f, "/projects/HighAspectRTI/nek/", name, usr, size_mod, _legacy=legacy);
 
   int[] iout; iout[j0] = j0 * outputs_per_job + 1;
   int[] istep; istep[j0] = j0*job_step;
@@ -70,18 +37,13 @@ if (qval <= pval) {
   //string[][] outfile_names_all;
   //(checkpoint_names_all, outfile_names_all) = nek_out_names_all(tdir, name, 4, outputs_per_job, nwrite);
 
-  //trace("Foo");
   //file[][] checkpoints_j <ext; exec="map.sh", tdir=tdir, name=name, jobs=128, inc=outputs_per_job, nwrite=nwrite>;
   file[][] checkpoints_j;
-  //trace("bar");
   file[] stdout_j;
   file[] arch_j;
   file[] analyze_j;
 
 
-  //trace("Spam");
-  //trace(filenames(checkpoints_j));
-  //trace("Eggs");
 
   if (j0 > 0){
     string[] checkpoint_names, outfile_names;
@@ -101,7 +63,7 @@ if (qval <= pval) {
   /* Time or Iteration loop */
   foreach eh,j in istep{
     /* Configure the next iteration */
-    string name_j = sprintf("./%s_v_%f_c_%f-%d", prefix, pval, qval, j);
+    string name_j = sprintf("./%s-%d", name, j);
     file config     <single_file_mapper; file=sprintf("%s/%s-%d.json", tdir, name, j)>;
     file rea_j      <single_file_mapper; file=sprintf("%s/%s-%d.rea",  tdir, name, j)>;
     file map_j      <single_file_mapper; file=sprintf("%s/%s-%d.map",  tdir, name, j)>;
@@ -179,7 +141,7 @@ if (qval <= pval) {
     /* If this isn't the first iteration, clean up the extra files
        we save the first iteration because it contains the positions */
     file clean_o <single_file_mapper; file=sprintf("%s/clean-%d.output", tdir, j)>;
-    (clean_o) = clean(outfiles, arch_o, analyze_o);
+    (clean_o) = clean_str(outfile_names, arch_o, analyze_o, donek_o);
     file clean2_o <single_file_mapper; file=sprintf("%s/clean2-%d.output", tdir, j)>;
     (clean2_o) = clean(checkpoints_j[j], arch_o, analyze_o);
     if (j > 0) {
@@ -199,9 +161,74 @@ if (qval <= pval) {
      times[j+1] = times[j] + job_time;
     }
   }  
+}
 
+
+(int retcode) sweep (
+                     string  prefix,         // prefix for directories, files
+                     file    json,           // baseline configuration 
+                     file    tusr,           // templated user file
+                     string  pname,          // first parameter name
+                     float[] pvals,          // array of values for first parameter
+                     string  qname,          // first parameter name
+                     float[] qvals,          // array of values for first parameter
+                     int     nwrite,         // number of output files
+                     int     nstep,          // total number of steps
+                     int     io_step,        // output interval (iterations)
+                     int     job_step,       // job interval (iterations)
+                     float   io_time,        // output interval (time) (0 if unused)
+                     float   job_time,       // job interval (time) (0 if unused)
+                     int     nodes,          // nodes for simulation
+                     int     mode,           // mode for simulation
+                     int     job_wall,       // time for simulation
+                     int     j0=0,           // starting job index
+                     string  analysis="RTI", // analysis package name
+                     boolean legacy=false,   // legacy mode
+                     int     post_nodes=0    // nodes for post-processing
+                    ){
+retcode = 1;
+int outputs_per_job;
+if (job_time > 0.0 && io_time > 0.0){
+  trace("Foo");
+  //outputs_per_job = toInt(job_time / io_time);
+  outputs_per_job = 2; //toInt(sprintf("%f", job_time / io_time));
+  //tracef("Foo!");
+  //outputs_per_job = 2;
+} else {
+  outputs_per_job = job_step %/ io_step;
 }
-}
-}
+string cwd = arg("cwd", ".");
+
+  foreach pval,i in pvals {
+    foreach qval,ii in qvals {
+      if (qval <= pval) {
+ 
+        /* Pick a directory to run in */
+        string tdir = sprintf("./%s_v_%f_c_%f", prefix, pval, qval);
+        string name = sprintf("./%s_v_%f_c_%f", prefix, pval, qval);
+        file tdir_f  <single_file_mapper; file=strcat(cwd,"/",tdir)>;
+        file foo     <single_file_mapper; file=strcat(cwd,"/",tdir, "/foo")>;
+        (foo) = mkdir(tdir_f);
+    
+        /* Construct input files and build the nek5000 executable */
+        file base     <single_file_mapper; file=sprintf("%s/%s.json", tdir, name)>;
+        file rea      <single_file_mapper; file=sprintf("%s/%s.rea",  tdir, name)>;
+        file map      <single_file_mapper; file=sprintf("%s/%s.map",  tdir, name)>;
+        file usr      <single_file_mapper; file=sprintf("%s/%s.usr",  tdir, name)>;
+        //file size_mod <single_file_mapper; file=sprintf("%s/SIZE",  tdir, name)>;
+        file size_mod <single_file_mapper; file=sprintf("%s/size_mod.F90",  tdir)>;
+    
+        (usr, rea, map, base, size_mod) = genrun (json, tusr, name, tdir_f, pname, pval, qname, qval, foo, _legacy=legacy);
+        file nek5000 <single_file_mapper; file=sprintf("%s/nek5000", tdir, name)>;
+        (nek5000) = makenek(tdir_f, "/projects/HighAspectRTI/nek/", name, usr, size_mod, _legacy=legacy);
+  
+        int ret_l;
+        (ret_l) =  series(nek5000, nodes, mode,
+                          cwd, tdir, tdir_f, 
+                          name, nwrite, base, usr, job_time, nstep, job_step, outputs_per_job, 
+                          analysis=analysis, job_wall=job_wall, post_nodes=post_nodes, j0=j0);
+      }
+    }
+  }
 
 }
