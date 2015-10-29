@@ -3,40 +3,40 @@ type file;
 app 
 (file _usr, file _rea, file _map, file _config, file _size)
 app_genrun_new
-(file _json, file _tusr, string _name, file _tdir, string _pname, float _pval, string _qname, float _qval)
+(file _json, file _tusr, string _name, string _tdir, string _pname, float _pval, string _qname, float _qval)
 {
-  genrun "-d" @_json "-u" @_tusr "--tdir" @_tdir _name "--no-make" strcat("--override={\"",_pname,"\": ", _pval, ", \"", _qname, "\": ", _qval, "}");
+  genrun "-d" @_json "-u" @_tusr "--tdir" _tdir _name "--no-make" strcat("--override={\"",_pname,"\": ", _pval, ", \"", _qname, "\": ", _qval, "}");
 }
 
 app 
 (file _usr, file _rea, file _map, file _config, file _size)
 app_genrun_old
-(file _json, file _tusr, string _name, file _tdir, string _pname, float _pval, string _qname, float _qval)
+(file _json, file _tusr, string _name, string _tdir, string _pname, float _pval, string _qname, float _qval)
 {
-    genrun "-d" @_json "-u" @_tusr "--tdir" @_tdir _name "--legacy" "--no-make" strcat("--override={\"",_pname,"\": ", _pval, ", \"", _qname, "\": ", _qval, "}");
+    genrun "-d" @_json "-u" @_tusr "--tdir" _tdir _name "--legacy" "--no-make" strcat("--override={\"",_pname,"\": ", _pval, ", \"", _qname, "\": ", _qval, "}");
 }
 
 app
 (file _usr, file _rea, file _map, file _config, file _size)
 genrun
-(file _json, file _tusr, string _name, file _tdir, string _pname, float _pval, string _qname, float _qval, file _foo, boolean _legacy = false)
+(file _json, file _tusr, string _name, string _tdir, string _pname, float _pval, string _qname, float _qval, file _foo, boolean _legacy = false)
 {
 //  if (_legacy) {
-//    genrun "-d" @_json "-u" @_tusr "--tdir" @_tdir _name "--legacy" "--no-make" strcat("--override={\"",_pname,"\": ", _pval, ", \"", _qname, "\": ", _qval, "}");
+//    genrun "-d" @_json "-u" @_tusr "--tdir" _tdir _name "--legacy" "--no-make" strcat("--override={\"",_pname,"\": ", _pval, ", \"", _qname, "\": ", _qval, "}");
 //  }else{
-    genrun "-d" @_json "-u" @_tusr "--tdir" @_tdir _name "--no-make" strcat("--override={\"",_pname,"\": ", _pval, ", \"", _qname, "\": ", _qval, "}");
+    genrun "-d" @_json "-u" @_tusr "--tdir" _tdir _name "--no-make" strcat("--override={\"",_pname,"\": ", _pval, ", \"", _qname, "\": ", _qval, "}");
 //  }
 }
 
 app
 (file _usr, file _rea, file _map, file _config, file _size)
 genrun_str
-(file _json, file _tusr, string _name, file _tdir, string _override, file _foo, boolean _legacy = false)
+(file _json, file _tusr, string _name, string _tdir, string _override, file _foo, boolean _legacy = false)
 {
 //  if (_legacy) {
-//    genrun "-d" @_json "-u" @_tusr "--tdir" @_tdir _name "--legacy" "--no-make" strcat("--override=", _override);
+//    genrun "-d" @_json "-u" @_tusr "--tdir" _tdir _name "--legacy" "--no-make" strcat("--override=", _override);
 //  }else{
-    genrun "-d" @_json "-u" @_tusr "--tdir" @_tdir _name "--no-make" strcat("--override=", _override);
+    genrun "-d" @_json "-u" @_tusr "--tdir" _tdir _name "--no-make" strcat("--override=", _override);
 //  }
 }
 
@@ -52,39 +52,39 @@ app_gensub
 app 
 (file _rea, file _map, file _config)
 app_regen
-(file _json, file _tusr, string _name, file _tdir, string _pname, float _pval, string _pname2, float _pval2)
+(file _json, file _tusr, string _name, string _tdir, string _pname, float _pval, string _pname2, float _pval2)
 {
-  genrun "-d" @_json "-u" @_tusr "--tdir" @_tdir _name "--no-make" strcat("--override={\"",_pname,"\": ", _pval, ", \"", _pname2, "\": ", _pval2, "}");
+  genrun "-d" @_json "-u" @_tusr "--tdir" _tdir _name "--no-make" strcat("--override={\"",_pname,"\": ", _pval, ", \"", _pname2, "\": ", _pval2, "}");
 }
 
 app 
 (file _rea, file _map, file _config)
 app_regen_str
-(file _json, file _tusr, string _name, file _tdir, string _override)
+(file _json, file _tusr, string _name, string _tdir, string _override)
 {
-  genrun "-d" @_json "-u" @_tusr "--tdir" @_tdir _name "--no-make" strcat("--override=", _override);
+  genrun "-d" @_json "-u" @_tusr "--tdir" _tdir _name "--no-make" strcat("--override=", _override);
 }
 
 
 app
 (file _nek5000)
 app_makenek_new
-(file _tdir, string _path, string _name, file _usr, file _size)
+(string _tdir, string _path, string _name, file _usr, file _size)
 {
-  makenek strcat(_path, "/makenek") _name _path @_tdir;
+  makenek strcat(_path, "/makenek") _name _path _tdir;
 }
 
 app
 (file _nek5000)
 app_makenek_old
-(file _tdir, string _path, string _name, file _usr, file _size)
+(string _tdir, string _path, string _name, file _usr, file _size)
 {
-  makenek strcat(_path, "/makenek") _name _path @_tdir;
+  makenek strcat(_path, "/makenek") _name _path _tdir;
 }
 
 (file _nek5000)
 makenek
-(file _tdir, string _path, string _name, file _usr, file _size, boolean _legacy = false)
+(string _tdir, string _path, string _name, file _usr, file _size, boolean _legacy = false)
 {
   if (_legacy) {
     _nek5000 = app_makenek_old(_tdir, _path, _name, _usr, _size);
@@ -97,19 +97,19 @@ makenek
 app
 (file _out, file _err, file[] _RTIfiles, file[] _checkpoint)
 app_donek
-(file _rea, file _map, file _tdir, string _name, string _series, file _nek5000, int _nodes, int _mode, int _time)
+(file _rea, file _map, string _tdir, string _name, string _series, file _nek5000, int _nodes, int _mode, int _time)
 {
  //nekmpi _name 4 _tdir stdout=@_out stderr=@_err;
- nekmpi _name _series toString(_nodes) toString(_mode) _time @_tdir;
+ nekmpi _name _series toString(_nodes) toString(_mode) _time _tdir;
 }
 
 app
 (file _out, file _err, file[] _RTIfiles, file[] _checkpoint)
 app_donek_restart
-(file _rea, file _map, file _tdir, string _name, string _series, file _nek5000, file[] _inpoint, int _nodes, int _mode, int _time, file _dep)
+(file _rea, file _map, string _tdir, string _name, string _series, file _nek5000, file[] _inpoint, int _nodes, int _mode, int _time, file _dep)
 {
  //nekmpi _name 4 _tdir stdout=@_out stderr=@_err;
- nekmpi _name _series toString(_nodes) toString(_mode) _time @_tdir;
+ nekmpi _name _series toString(_nodes) toString(_mode) _time _tdir;
 }
 
 
@@ -225,7 +225,7 @@ app_cp
 app
 (file _foo)
 mkdir
-(file _dirname)
+(string _dirname)
 {
-  mkdir filename(_dirname);
+  mkdir _dirname stdout=@_foo;
 }

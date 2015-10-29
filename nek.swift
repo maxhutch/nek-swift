@@ -9,7 +9,7 @@ series
   int mode,
   string cwd,
   string tdir,
-  file tdir_f,
+  string tdir_f,
   string name,
   int nwrite,
   file base,
@@ -204,11 +204,12 @@ string cwd = arg("cwd", ".");
       if (qval <= pval) {
  
         /* Pick a directory to run in */
-        string tdir = sprintf("./%s_v_%f_c_%f", prefix, pval, qval);
+        string tdir   = sprintf("./%s_v_%f_c_%f", prefix, pval, qval);
+        string tdir_f = sprintf("%s/%s_v_%f_c_%f", cwd, prefix, pval, qval);
         string name = sprintf("./%s_v_%f_c_%f", prefix, pval, qval);
-        file tdir_f  <single_file_mapper; file=strcat(cwd,"/",tdir)>;
-        file foo     <single_file_mapper; file=strcat(cwd,"/",tdir, "/foo")>;
+        file foo <single_file_mapper; file=strcat("mkdir-", tdir, ".out")>;
         (foo) = mkdir(tdir_f);
+        //file tdir_f  <single_file_mapper; file=strcat(cwd,"/",tdir)>;
     
         /* Construct input files and build the nek5000 executable */
         file base     <single_file_mapper; file=sprintf("%s/%s.json", tdir, name)>;
@@ -219,7 +220,7 @@ string cwd = arg("cwd", ".");
         file size_mod <single_file_mapper; file=sprintf("%s/size_mod.F90",  tdir)>;
     
         (usr, rea, map, base, size_mod) = genrun (json, tusr, name, tdir_f, pname, pval, qname, qval, foo, _legacy=legacy);
-        file nek5000 <single_file_mapper; file=sprintf("%s/nek5000", tdir, name)>;
+        file nek5000 <single_file_mapper; file=sprintf("%s/nek5000", tdir_f, name)>;
         (nek5000) = makenek(tdir_f, "/projects/HighAspectRTI/nek/", name, usr, size_mod, _legacy=legacy);
   
         int ret_l;
