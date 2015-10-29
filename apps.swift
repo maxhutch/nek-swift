@@ -214,18 +214,9 @@ app_upload
 }
 
 app
-(file _dest)
-app_cp
-(file _src)
-{
-  cp @_src @_dest;
-}
-
-
-app
 (file _foo)
 mkdir
 (string _dirname)
 {
-  mkdir _dirname stdout=@_foo;
+  mkdir "-p" _dirname stdout=@_foo;
 }

@@ -207,9 +207,8 @@ string cwd = arg("cwd", ".");
         string tdir   = sprintf("./%s_v_%f_c_%f", prefix, pval, qval);
         string tdir_f = sprintf("%s/%s_v_%f_c_%f", cwd, prefix, pval, qval);
         string name = sprintf("./%s_v_%f_c_%f", prefix, pval, qval);
-        file foo <single_file_mapper; file=strcat("mkdir-", tdir, ".out")>;
+        file foo <single_file_mapper; file=strcat("mkdirs/", tdir, ".out")>;
         (foo) = mkdir(tdir_f);
-        //file tdir_f  <single_file_mapper; file=strcat(cwd,"/",tdir)>;
     
         /* Construct input files and build the nek5000 executable */
         file base     <single_file_mapper; file=sprintf("%s/%s.json", tdir, name)>;
