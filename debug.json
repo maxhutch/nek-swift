@@ -15,7 +15,7 @@
   "front_bound": "SYM",
   "amp0": 0.01,
   "wait_vel": 2.0,
-  "io_files": -128.0,
+  "io_files": -256.0,
   "dealiasing_order": 12,
   "right_bound": "SYM",
   "bottom_bound": "W",
@@ -60,9 +60,9 @@
   ],
   "toldiv": 0.0,
   "dim": 3,
-  "procs": 8192,
+  "procs": 65536,
   "back_bound": "SYM",
-  "io_step": 64.0,
+  "io_step": 32.0,
   "viscosity": 0.0001,
   "num_fields": 2
 }

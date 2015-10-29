@@ -20,14 +20,21 @@ int io_step = 128;
 int step_block = 1024;
 int foo = 8;
 */
-int nodes = 128;
+int nodes = 1024;
 int mode = 64;
-int nstep = 256;
+int nstep = 512;
 int io_step = 32;
-int step_block = 128;
-int jtime = 30;
+int step_block = 512;
+int jtime = 10;
 int test;
-int j0 = 1;
+int j0 = 0;
 
+float io_time = 0.0;
+float time_block = 0.0;
 
-test = sweep(prefix, json, tusr, pname, pvals, nwrite, legacy, nstep, io_step, step_block, nodes, mode, jtime, j0 = j0);
+test = sweep(prefix, json, tusr, 
+             pname, pvals, nwrite, 
+             legacy, nstep, 
+             io_step, step_block, 
+             io_time, time_block,
+             nodes, mode, jtime, j0 = j0);
