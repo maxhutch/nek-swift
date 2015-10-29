@@ -1,9 +1,1 @@
-[submodule "nek-analyze"]
-	path = nek-analyze
-	url = https://github.com/maxhutch/nek-analyze.git
-[submodule "nek"]
-	path = nek
-	url = https://github.com/maxhutch/nek.git
-[submodule "nek-tools"]
-	path = nek-tools
-	url = https://github.com/maxhutch/nek-tools.git
+
