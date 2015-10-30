@@ -124,13 +124,24 @@ app_nek_analyze
 
 (string[] _checkpoint, string[] _ofs) nek_out_names(string _tdir, string _name, int _nstart, int _nend, int _nwrite)
 {
+  int npad;
+  if (_nwrite < 11){
+     npad = 1;
+  } else if (_nwrite < 101) {
+     npad = 2;
+  } else if (_nwrite < 1001) {
+     npad = 3;
+  } else if (_nwrite < 10001) {
+    npad = 4;
+  }
+
   foreach i in [_nstart:_nend-1]{
     foreach j in [0:_nwrite-1]{
-      _ofs[(i-_nstart)*_nwrite + j] = sprintf("%s/A%s/%s%s.f%s", _tdir, pad(3, j), _name, pad(3,j), pad(5, i));
+      _ofs[(i-_nstart)*_nwrite + j] = sprintf("%s/A%s/%s%s.f%s", _tdir, pad(npad, j), _name, pad(npad,j), pad(5, i));
     }
   }
   foreach j in [0:_nwrite-1]{
-    _checkpoint[j] = sprintf("%s/A%s/%s%s.f%s", _tdir, pad(3, j), _name, pad(3,j), pad(5, _nend));
+    _checkpoint[j] = sprintf("%s/A%s/%s%s.f%s", _tdir, pad(npad, j), _name, pad(npad,j), pad(5, _nend));
   }
 }
 

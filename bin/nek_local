@@ -1,0 +1,17 @@
+cd $6
+echo $1        >  SESSION.NAME
+echo `pwd`'/' >>  SESSION.NAME
+echo $2       >>  SESSION.NAME
+touch $1.rea
+rm ioinfo
+mv $1.log.$3 $1.log1.$3
+mv $1.his $1.his1
+mv $1.sch $1.sch1
+rm $1.output
+rm logfile
+rm xxt_map.rea
+rm logfile
+touch $1.log.$3
+ln $1.log.$3 $1.output
+ln $1.log.$3 logfile
+mpirun -np $(($4 * $3)) nek5000 > $1.output 2> $1.error
