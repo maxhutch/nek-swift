@@ -118,7 +118,7 @@ app
 app_nek_analyze
 (file _RTIjson, file[] _RTIfiles, file[] _checkpoints, string _name, string _analysis, int _start, int _end, int _post_nodes)
 {
-  post_proc  _name "-f" _start "-e" _end "--no-archive" "--process" "--no-sync" "--no-upload" strcat("--nodes=", toString(_post_nodes)) "--home_end=alcf#dtn_mira/" strcat("--analysis=", _analysis) stdout=@_out stderr=@_err;
+  nek_analyze  _name "-f" _start "-e" _end "--no-archive" "--process" "--no-sync" "--no-upload" strcat("--nodes=", toString(_post_nodes)) "--home_end=alcf#dtn_mira/" strcat("--analysis=", _analysis) stdout=@_out stderr=@_err;
 }
 
 
