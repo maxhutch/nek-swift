@@ -47,7 +47,7 @@ series
 
   if (j0 > 0){
     string[] checkpoint_names, outfile_names;
-    (checkpoint_names, outfile_names) = nek_out_names(tdir, name, iout[j0]-1, iout[j0], nwrite);
+    (checkpoint_names, outfile_names) = nek_out_names(tdir, name, iout[j0]-2, iout[j0], nwrite);
     checkpoint_names_j[j0-1] = checkpoint_names;
     file[] checkpoints <array_mapper; files=checkpoint_names>;
     checkpoints_j[j0-1] = checkpoints;
