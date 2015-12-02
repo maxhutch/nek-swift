@@ -121,6 +121,14 @@ app_nek_analyze
   nek_analyze  _name "-f" _start "-e" _end "--no-archive" "--process" "--no-sync" "--no-upload" strcat("--nodes=", toString(_post_nodes)) "--home_end=alcf#dtn_mira/" strcat("--analysis=", _analysis) stdout=@_out stderr=@_err;
 }
 
+app
+(file _out, file _err, file[] _pngs) //, file _chest)
+app_nek_analyze
+(file _RTIjson, file[] _RTIfiles, file[] _checkpoints, string _name, string _analysis, int _start, int _end, int _post_nodes, file dep)
+{
+  nek_analyze  _name "-f" _start "-e" _end "--no-archive" "--process" "--no-sync" "--no-upload" strcat("--nodes=", toString(_post_nodes)) "--home_end=alcf#dtn_mira/" strcat("--analysis=", _analysis) stdout=@_out stderr=@_err;
+}
+
 
 (string[] _checkpoint, string[] _ofs) nek_out_names(string _tdir, string _name, int _nstart, int _nend, int _nwrite)
 {
@@ -144,6 +152,14 @@ app_nek_analyze
     _checkpoint[j] = sprintf("%s/A%s/%s%s.f%s", _tdir, pad(npad, j), _name, pad(npad,j), pad(5, _nend));
   }
 }
+
+(string[] _names) nek_png_names(string _tdir, string _name, int _nstart, int _nend)
+{
+  foreach i in [_nstart:_nend]{
+    _names[i-_nstart] = sprintf("%s/img/%s-t_xy-%s.png", _tdir, _name, pad(4, i));
+  }
+}
+
 
 (string[] _outs) prepend_vec(string[] _ins, string head){
   foreach cname,k in _ins {

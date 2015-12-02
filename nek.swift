@@ -127,9 +127,17 @@ series
     /* Analyze the outputs, making a bunch of pngs */
     file analyze_o <single_file_mapper; file=sprintf("%s/analyze-%d_out.txt", tdir, j)>;
     file analyze_e <single_file_mapper; file=sprintf("%s/analyze-%d_err.txt", tdir, j)>;
-    file[] pngs <filesys_mapper; pattern=sprintf("%s/img/%s*.png", tdir, name_j)>;
+    string[] png_names;
+    (png_names) = nek_png_names(tdir, name, istart, iout[j+1]);
+
+    //file[] pngs <filesys_mapper; pattern=sprintf("%s/img/%s*.png", tdir, name_j)>;
+    file[] pngs <array_mapper; files=png_names>;
     //file chest <single_file_mapper; file=sprintf("%s/%s-results", tdir, name_j)>;
-    (analyze_o, analyze_e, pngs) = app_nek_analyze(config, outfiles, checkpoints, sprintf("%s/%s/%s",cwd, tdir,name), analysis, istart, iout[j+1], post_nodes_l);
+    if (j > 0){
+      (analyze_o, analyze_e, pngs) = app_nek_analyze(config, outfiles, checkpoints, sprintf("%s/%s/%s",cwd, tdir,name), analysis, istart, iout[j+1], post_nodes_l, analyze_j[j-1]);
+    } else {
+      (analyze_o, analyze_e, pngs) = app_nek_analyze(config, outfiles, checkpoints, sprintf("%s/%s/%s",cwd, tdir,name), analysis, istart, iout[j+1], post_nodes_l);
+    }
     analyze_j[j] = analyze_o;
     
     /* Archive the outputs to HPSS  */
