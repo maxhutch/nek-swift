@@ -1,4 +1,5 @@
 #!/bin/bash
-/home/maxhutch/swift-dev/dist/swift-svn/bin/swift -config ${2}.conf ${1}.swift -cwd=`pwd`
+rm -rf mkdirs *.kml
+/home/maxhutch/swift-dev/dist/swift-svn/bin/swift -config ${3}.conf ${1}.swift -cwd=`pwd` -in=${2}
 #/home/maxhutch/swift-dev/dist/swift-svn/bin/swift -ui TUI -config ${2}.conf ${1}.swift -cwd=`pwd`
 #/home/maxhutch/swift-k/dist/swift-svn/bin/swift -config ${2}.conf ${1}.swift -cwd=`pwd`
