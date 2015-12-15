@@ -97,19 +97,19 @@ makenek
 app
 (file _out, file _err, file[] _RTIfiles, file[] _checkpoint)
 app_donek
-(file _rea, file _map, string _tdir, string _name, string _series, file _nek5000, int _nodes, int _mode, int _time)
+(file _rea, file _map, string _tdir, string _name, string _series, file _nek5000, int _nodes, int _mode, int _time, string _opts="")
 {
  //nekmpi _name 4 _tdir stdout=@_out stderr=@_err;
- nekmpi _name _series toString(_nodes) toString(_mode) _time _tdir;
+ nekmpi _name _series toString(_nodes) toString(_mode) _time _tdir _opts;
 }
 
 app
 (file _out, file _err, file[] _RTIfiles, file[] _checkpoint)
 app_donek_restart
-(file _rea, file _map, string _tdir, string _name, string _series, file _nek5000, file[] _inpoint, int _nodes, int _mode, int _time, file _dep)
+(file _rea, file _map, string _tdir, string _name, string _series, file _nek5000, file[] _inpoint, int _nodes, int _mode, int _time, file _dep, string _opts="")
 {
  //nekmpi _name 4 _tdir stdout=@_out stderr=@_err;
- nekmpi _name _series toString(_nodes) toString(_mode) _time _tdir;
+ nekmpi _name _series toString(_nodes) toString(_mode) _time _tdir _opts;
 }
 
 
@@ -247,3 +247,12 @@ mkdir
 {
   mkdir "-p" _dirname stdout=@_foo;
 }
+
+app
+(file _out)
+get_j
+(string _tdir, string _name)
+{
+  get_j_py _tdir _name stdout=@_out;
+}
+
